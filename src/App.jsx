@@ -9,6 +9,7 @@ import HabitTracker from './components/HabitTracker';
 import AnalyticsView from './components/AnalyticsView';
 import { useAppContext } from './context/AppContext';
 import { Plus, Sun, Moon, Star, Menu, Search } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
@@ -60,7 +61,7 @@ function App() {
       ></div>
 
       <main className={`main-wrapper ${!isSidebarOpen && !isMobileMode ? 'expanded' : ''}`}>
-        <header className="header-wrapper">
+        <header className="header-wrapper" style={{ padding: 'clamp(1.5rem, 4vw, 2.5rem)  clamp(1.5rem, 4vw, 4rem) 1rem' }}>
           <div className="header-title-container" style={{ gap: '1rem' }}>
             <button 
               className={`mobile-menu-btn ${isSidebarOpen ? 'active' : ''}`} 

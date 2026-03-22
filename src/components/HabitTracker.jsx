@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Plus, Trash2, ChevronLeft, ChevronRight, Flame } from 'lucide-react';
 
@@ -90,7 +91,7 @@ const HabitTracker = () => {
                   const dateStr = date.toISOString().split('T')[0];
                   const isToday = dateStr === todayStr;
                   return (
-                    <th key={i} style={{ textAlign: 'center', padding: '0.5rem', width: '52px' }}>
+                    <th key={i} style={{ textAlign: 'center', padding: '0.5rem', minWidth: '44px', maxWidth: '52px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
                         <span style={{ color: isToday ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.35)', fontWeight: 900, fontSize: '0.85rem' }}>{weekDays[i]}</span>
                         <span style={{ color: 'rgba(255,255,255,0.25)', fontWeight: 600, fontSize: '0.65rem' }}>{date.getDate()}</span>
@@ -198,7 +199,7 @@ const HabitTracker = () => {
             placeholder="New habit name…"
             value={newHabitName}
             onChange={e => setNewHabitName(e.target.value)}
-            style={{ flex: 1, minWidth: '160px', background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '0.95rem', fontWeight: 600, padding: '0.5rem' }}
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '0.95rem', fontWeight: 600, padding: '0.5rem' }}
           />
           <button
             type="submit"

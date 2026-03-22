@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import ProgressBar from './ProgressBar';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, CheckCircle, Circle, Flag, Clock } from 'lucide-react';
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 
@@ -54,7 +55,7 @@ const CalendarView = () => {
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       className="glass floating-glass"
-      style={{ padding: '2rem', position: 'relative', overflow: 'hidden' }}
+      style={{ padding: '2rem', position: 'relative', overflow: 'hidden', maxWidth: '800px', margin: '0 auto' }}
     >
       <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '200px', height: '200px', background: 'var(--primary)', filter: 'blur(80px)', opacity: 0.1 }}></div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3.5rem' }}>

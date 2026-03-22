@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import ProgressBar from './ProgressBar';
 import { TrendingUp, Award, AlertTriangle } from 'lucide-react';
@@ -148,7 +149,7 @@ const AnalyticsView = () => {
         <h2 style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>30-Day Activity</h2>
         <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.8rem', fontWeight: 600, marginBottom: '1.25rem' }}>Days you completed at least one goal</p>
         <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-          {last30.map((dateStr, i) => {
+          {last30.map((dateStr) => {
             const active = historySet.has(dateStr);
             const isToday = dateStr === new Date().toISOString().split('T')[0];
             return (

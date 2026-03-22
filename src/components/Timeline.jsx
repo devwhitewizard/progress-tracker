@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { CheckCircle2, Circle } from 'lucide-react';
 
@@ -20,7 +21,7 @@ const Timeline = () => {
     >
       <div style={{ position: 'absolute', left: '0', top: '0', bottom: '0', width: '2px', background: 'var(--glass-border)', marginLeft: '8px' }}></div>
       
-      {allPeriods.length > 0 ? allPeriods.map((period, index) => (
+      {allPeriods.length > 0 ? allPeriods.map((period) => (
         <div key={`${period.type}-${period.id}`} style={{ position: 'relative', marginBottom: '3rem' }}>
           <div style={{ 
             position: 'absolute', left: '-2rem', top: '4px', width: '18px', height: '18px', borderRadius: '50%', 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { Calendar, Layers, Star, CheckCircle, Circle } from 'lucide-react';
 

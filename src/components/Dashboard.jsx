@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import ProgressBar from './ProgressBar';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { Flame, Trophy, ArrowRight } from 'lucide-react';
 
@@ -25,7 +26,7 @@ const ProgressRing = ({ percentage, size = 90, strokeWidth = 7, color = '#6366f1
 };
 
 // 7-bar weekly sparkline
-const WeekSparkline = ({ goals, getDatesForWeek }) => {
+const WeekSparkline = ({ goals }) => {
   const today = new Date();
   const bars = [];
   for (let i = 6; i >= 0; i--) {
@@ -40,7 +41,7 @@ const WeekSparkline = ({ goals, getDatesForWeek }) => {
     bars.push({ pct, total, done, day: ['S','M','T','W','T','F','S'][d.getDay()], isToday });
   }
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '60px' }}>
+  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '4rem' }}>
       {bars.map((b, i) => (
         <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', height: '100%', justifyContent: 'flex-end' }}>
           <div style={{
@@ -74,7 +75,7 @@ const getMotivationalMsg = (streak) =>
 const RING_COLORS = { daily: '#6366f1', weekly: '#f472b6', yearly: '#22d3ee' };
 
 const Dashboard = ({ setView, setSelectedPeriod }) => {
-  const { goals, streak, getDatesForWeek, history } = useAppContext();
+  const { goals, streak, getDatesForWeek } = useAppContext();
   const today = new Date().toISOString().split('T')[0];
 
   const getStatsForPeriodType = (type) => {
@@ -118,7 +119,7 @@ const Dashboard = ({ setView, setSelectedPeriod }) => {
       style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
     >
       {/* Top Stats Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
         {/* Streak Card */}
         <div className="glass floating-glass" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-20%', right: '-20%', width: '120px', height: '120px', background: 'var(--primary)', filter: 'blur(50px)', opacity: 0.12 }} />
@@ -146,7 +147,7 @@ const Dashboard = ({ setView, setSelectedPeriod }) => {
         {/* Weekly Sparkline */}
         <div className="glass floating-glass" style={{ padding: '1.5rem', position: 'relative', overflow: 'hidden' }}>
           <div style={{ fontSize: '0.72rem', fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '0.75rem' }}>This Week</div>
-          <WeekSparkline goals={goals} getDatesForWeek={getDatesForWeek} />
+          <WeekSparkline goals={goals} />
         </div>
       </div>
 

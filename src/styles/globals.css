@@ -107,3 +107,39 @@ button:active {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+
+/* Enhanced Phone Responsiveness */
+@media (max-width: 480px) {
+  .sidebar-wrapper {
+    width: 90vw !important;
+    max-width: 320px;
+    padding: 1rem;
+  }
+  
+  .header-wrapper {
+    padding: 1rem !important;
+    gap: 1rem;
+  }
+  
+  .content-wrapper {
+    padding: 1rem !important;
+  }
+  
+  .header-actions button {
+    padding: 0.9rem 1.5rem !important;
+    font-size: 0.95rem !important;
+    flex: 1;
+  }
+  
+  .page-title {
+    font-size: 1.8rem !important;
+  }
+  
+  table {
+    font-size: 0.85rem;
+  }
+  
+  th, td {
+    padding: 0.4rem !important;
+  }
+}
