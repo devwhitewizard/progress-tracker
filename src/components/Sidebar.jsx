@@ -1,123 +1,148 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { LayoutDashboard, Calendar as CalendarIcon, History, Moon, Sun, ChevronRight } from 'lucide-react';
+import {
+  LayoutDashboard, CalendarDays, CheckSquare, BarChart2,
+  Target, ChevronDown, X,
+  Calendar, Star, Sun
+} from 'lucide-react';
 
-const Sidebar = () => {
-  const { view, setView, selectedPeriod, setSelectedPeriod, isDarkMode, setIsDarkMode, streak } = useAppContext();
+const NavItem = ({ label, icon, isActive, onClick, indent = false }) => (
+  <button
+    onClick={onClick}
+    style={{
+      width: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.85rem',
+      padding: indent ? '0.75rem 1.4rem 0.75rem 2.5rem' : '0.85rem 1.4rem',
+      borderRadius: '14px',
+      color: isActive ? '#fff' : 'rgba(255,255,255,0.5)',
+      background: isActive
+        ? 'linear-gradient(135deg, var(--primary), var(--primary-deep))'
+        : 'transparent',
+      border: isActive ? 'none' : '1px solid transparent',
+      cursor: 'pointer',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      boxShadow: isActive ? '0 8px 20px rgba(99, 102, 241, 0.3)' : 'none',
+      fontWeight: isActive ? 800 : 600,
+      fontSize: indent ? '0.9rem' : '0.95rem',
+      textAlign: 'left',
+      borderLeft: isActive ? 'none' : 'none',
+      position: 'relative',
+    }}
+    className={isActive ? '' : 'hover-glow'}
+  >
+    <span style={{ color: isActive ? '#fff' : 'var(--primary)', flexShrink: 0, opacity: isActive ? 1 : 0.8 }}>
+      {icon}
+    </span>
+    {label}
+  </button>
+);
 
-  const periods = [
-    { type: 'daily', label: "Today's Goals", id: new Date().toISOString().split('T')[0] },
-    { type: 'weekly', label: "Weekly Planning", id: 1 }, // Default to Week 1
-    { type: 'yearly', label: "Yearly Vision", id: 2026 }
-  ];
+const SectionLabel = ({ children }) => (
+  <div style={{
+    fontSize: '0.65rem',
+    fontWeight: 900,
+    color: 'var(--accent-cyan)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.18em',
+    opacity: 0.7,
+    padding: '1.5rem 1.4rem 0.5rem',
+  }}>
+    {children}
+  </div>
+);
+
+const Sidebar = ({ isOpen, onClose, isMobileMode }) => {
+  const { view, setView, selectedPeriod, setSelectedPeriod } = useAppContext();
+  const [goalsOpen, setGoalsOpen] = useState(true);
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const navigate = (viewId, period = null) => {
+    setView(viewId);
+    if (period) setSelectedPeriod(period);
+    if (onClose && isMobileMode) onClose();
+  };
+
+  const isGoalActive = (type) => view === 'goals' && selectedPeriod.type === type;
+  
+  const sidebarClasses = `sidebar-wrapper ${isOpen ? 'open' : ''} ${!isOpen && !isMobileMode ? 'collapsed-desktop' : ''}`;
 
   return (
-    <aside className="glass" style={{ width: '280px', height: '100%', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
-        <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', borderRadius: '8px' }}></div>
-        <span style={{ fontSize: '1.5rem', fontWeight: 800, background: 'linear-gradient(to right, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Tracker</span>
-      </div>
+    <aside className={sidebarClasses}>
+      <div className="floating-glass" style={{
+        width: '100%', flex: 1, padding: '1.5rem 1rem',
+        display: 'flex', flexDirection: 'column',
+        position: 'relative', overflow: 'hidden'
+      }}>
+        {/* Glow blob */}
+        <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'var(--primary)', filter: 'blur(70px)', opacity: 0.08, pointerEvents: 'none' }} />
 
-      <div style={{ marginBottom: '2rem', padding: '0.75rem 1rem', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <span style={{ fontSize: '1.25rem' }}>🔥</span>
-        <div>
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>STREAK</div>
-          <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{streak} Days</div>
-        </div>
-      </div>
-
-      <nav style={{ flex: 1, overflowY: 'auto' }}>
-        <button
-          onClick={() => setView('dashboard')}
-          style={{
-            width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem', borderRadius: '12px',
-            color: view === 'dashboard' ? 'var(--primary)' : '#94a3b8',
-            background: view === 'dashboard' ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-            marginBottom: '0.5rem', transition: 'all 0.2s ease',
-            border: view === 'dashboard' ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid transparent'
-          }}
-        >
-          <LayoutDashboard size={20} />
-          <span style={{ fontWeight: 600 }}>Dashboard</span>
-        </button>
-
-        <button
-          onClick={() => setView('calendar')}
-          style={{
-            width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem', borderRadius: '12px',
-            color: view === 'calendar' ? 'var(--primary)' : '#94a3b8',
-            background: view === 'calendar' ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-            marginBottom: '0.5rem', transition: 'all 0.2s ease',
-            border: view === 'calendar' ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid transparent'
-          }}
-        >
-          <CalendarIcon size={20} />
-          <span style={{ fontWeight: 600 }}>Calendar</span>
-        </button>
-
-        <button
-          onClick={() => setView('timeline')}
-          style={{
-            width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem', borderRadius: '12px',
-            color: view === 'timeline' ? 'var(--primary)' : '#94a3b8',
-            background: view === 'timeline' ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-            marginBottom: '1.5rem', transition: 'all 0.2s ease',
-            border: view === 'timeline' ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid transparent'
-          }}
-        >
-          <History size={20} />
-          <span style={{ fontWeight: 600 }}>Timeline</span>
-        </button>
-
-        <div style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '0.75rem', marginLeft: '0.5rem' }}>GOALS</div>
-        
-        {periods.map(p => (
-          <button
-            key={p.type}
-            onClick={() => { setView('goals'); setSelectedPeriod({ type: p.type, id: p.id }); }}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem', borderRadius: '12px',
-              color: (view === 'goals' && selectedPeriod.type === p.type) ? 'var(--primary)' : '#94a3b8',
-              background: (view === 'goals' && selectedPeriod.type === p.type) ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-              marginBottom: '0.5rem', transition: 'all 0.2s ease',
-              border: (view === 'goals' && selectedPeriod.type === p.type) ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid transparent'
-            }}
-          >
-            <CalendarIcon size={20} />
-            <span style={{ fontWeight: 600 }}>{p.label}</span>
-          </button>
-        ))}
-
-        {view === 'goals' && selectedPeriod.type === 'weekly' && (
-          <div style={{ marginLeft: '2.5rem', display: 'flex', flexDirection: 'column' }}>
-            {[1, 2, 3].map(w => (
-              <button
-                key={w}
-                onClick={() => setSelectedPeriod({ type: 'weekly', id: w })}
-                style={{ 
-                  padding: '0.5rem 0', textAlign: 'left', fontSize: '0.875rem', 
-                  color: selectedPeriod.id === w ? 'var(--primary)' : '#64748b',
-                  fontWeight: selectedPeriod.id === w ? 700 : 500
-                }}
-              >
-                Week {w}
-              </button>
-            ))}
+        {/* Logo + Close */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', padding: '0 0.4rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, var(--primary), var(--accent))', borderRadius: '10px', boxShadow: '0 6px 16px rgba(99, 102, 241, 0.4)', flexShrink: 0 }} />
+            <span style={{ fontSize: '1.4rem', fontWeight: 900, background: 'linear-gradient(to right, #fff, var(--accent-cyan))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.04em' }}>
+              PRO TRACK
+            </span>
           </div>
-        )}
-      </nav>
-
-      <div className="glass" style={{ marginTop: 'auto', padding: '1rem', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255, 255, 255, 0.03)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#94a3b8' }}>
-          {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
-          <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Dark Mode</span>
+          <button
+            style={{ display: isOpen ? 'flex' : 'none', padding: '0.4rem', border: 'none', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', cursor: 'pointer', color: '#fff', alignItems: 'center', justifyContent: 'center' }}
+            onClick={onClose}
+          >
+            <X size={18} />
+          </button>
         </div>
-        <input 
-          type="checkbox" 
-          checked={isDarkMode} 
-          onChange={(e) => setIsDarkMode(e.target.checked)}
-          style={{ cursor: 'pointer' }}
-        />
+
+        {/* Nav */}
+        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem', overflowY: 'auto' }}>
+
+          <SectionLabel>Tracking</SectionLabel>
+          <NavItem id="dashboard" label="Dashboard" icon={<LayoutDashboard size={18} />} isActive={view === 'dashboard'} onClick={() => navigate('dashboard')} />
+          <NavItem id="habits" label="Habits" icon={<CheckSquare size={18} />} isActive={view === 'habits'} onClick={() => navigate('habits')} />
+          <NavItem id="calendar" label="Calendar" icon={<CalendarDays size={18} />} isActive={view === 'calendar'} onClick={() => navigate('calendar')} />
+          <NavItem id="analytics" label="Analytics" icon={<BarChart2 size={18} />} isActive={view === 'analytics'} onClick={() => navigate('analytics')} />
+
+          <SectionLabel>Goals</SectionLabel>
+          {/* Expandable Goals Group */}
+          <button
+            onClick={() => setGoalsOpen(o => !o)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '0.85rem 1.4rem', borderRadius: '14px',
+              color: (view === 'goals' || view === 'master') ? '#fff' : 'rgba(255,255,255,0.5)',
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              fontWeight: 700, fontSize: '0.95rem',
+              transition: 'all 0.2s'
+            }}
+            className="hover-glow"
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+              <span style={{ color: 'var(--primary)', opacity: 0.8 }}><Target size={18} /></span>
+              All Goals
+            </span>
+            <span style={{ color: 'rgba(255,255,255,0.4)', transition: 'transform 0.3s', transform: goalsOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
+              <ChevronDown size={16} />
+            </span>
+          </button>
+
+          {goalsOpen && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', marginBottom: '0.5rem' }}>
+              <NavItem indent id="daily" label="Daily Goals" icon={<Sun size={16} />} isActive={isGoalActive('daily')} onClick={() => navigate('goals', { type: 'daily', id: today })} />
+              <NavItem indent id="weekly" label="Weekly Goals" icon={<Calendar size={16} />} isActive={isGoalActive('weekly')} onClick={() => navigate('goals', { type: 'weekly', id: 1 })} />
+              <NavItem indent id="yearly" label="Yearly Goals" icon={<Star size={16} />} isActive={isGoalActive('yearly')} onClick={() => navigate('goals', { type: 'yearly', id: 2026 })} />
+              <NavItem indent id="master" label="All Goals View" icon={<BarChart2 size={16} />} isActive={view === 'master'} onClick={() => navigate('master')} />
+            </div>
+          )}
+        </nav>
+
+        {/* Footer hint */}
+        <div style={{ padding: '1rem 0.4rem 0', borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: '1rem' }}>
+          <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', fontWeight: 600, letterSpacing: '0.05em' }}>
+            Progress Tracker · v2.0
+          </p>
+        </div>
       </div>
     </aside>
   );

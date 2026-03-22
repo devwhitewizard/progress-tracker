@@ -1,0 +1,1994 @@
+diff --git a/src/App.jsx b/src/App.jsx
+index 0c86d30..961e990 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -1,21 +1,78 @@
+-import React, { useState } from 'react';
++import React, { useState, useEffect } from 'react';
+ import Sidebar from './components/Sidebar';
+ import Dashboard from './components/Dashboard';
+ import GoalView from './components/GoalView';
+ import CalendarView from './components/CalendarView';
+-import Timeline from './components/Timeline';
++import MasterPlanView from './components/MasterPlanView';
+ import AddGoalModal from './components/AddGoalModal';
++import HabitTracker from './components/HabitTracker';
++import AnalyticsView from './components/AnalyticsView';
+ import { useAppContext } from './context/AppContext';
+-import { Plus } from 'lucide-react';
++import { Plus, Sun, Moon, Star, Menu } from 'lucide-react';
++import { motion, AnimatePresence } from 'framer-motion';
++
++const HamburgerIcon = ({ isOpen }) => (
++  <div style={{
++    width: '24px',
++    height: '24px',
++    display: 'flex',
++    flexDirection: 'column',
++    justifyContent: 'center',
++    alignItems: 'center',
++    gap: '5px',
++    position: 'relative',
++  }}>
++    <span style={{
++      width: '20px', height: '2px', background: 'currentColor', borderRadius: '2px',
++      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
++      position: 'absolute',
++      top: isOpen ? '11px' : '5px',
++      transform: isOpen ? 'rotate(45deg)' : 'none'
++    }} />
++    <span style={{
++      width: '14px', height: '2px', background: 'currentColor', borderRadius: '2px',
++      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
++      marginRight: 'auto',
++      marginLeft: '2px',
++      opacity: isOpen ? 0 : 1,
++      transform: isOpen ? 'translateX(-10px)' : 'none'
++    }} />
++    <span style={{
++      width: '20px', height: '2px', background: 'currentColor', borderRadius: '2px',
++      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
++      position: 'absolute',
++      bottom: isOpen ? '11px' : '5px',
++      transform: isOpen ? 'rotate(-45deg)' : 'none'
++    }} />
++  </div>
++);
+ 
+ function App() {
+-  const { view, isDarkMode, selectedPeriod } = useAppContext();
++  const { view, setView, isDarkMode, setIsDarkMode, selectedPeriod, setSelectedPeriod } = useAppContext();
+   const [isModalOpen, setIsModalOpen] = useState(false);
++  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
++  const [isMobileMode, setIsMobileMode] = useState(window.innerWidth <= 1024);
++
++  useEffect(() => {
++    const handleResize = () => {
++      const mobile = window.innerWidth <= 1024;
++      setIsMobileMode(mobile);
++      if (!mobile) {
++        setIsSidebarOpen(true); // reset to open on desktop resize
++      } else {
++        setIsSidebarOpen(false); // close by default on mobile
++      }
++    };
++    window.addEventListener('resize', handleResize);
++    return () => window.removeEventListener('resize', handleResize);
++  }, []);
+ 
+   const getTitle = () => {
+-    if (view === 'dashboard') return 'Overall Insight';
+-    if (view === 'calendar') return 'Calendar Explorer';
+-    if (view === 'timeline') return 'Journey Timeline';
++    if (view === 'dashboard') return 'Dashboard';
++    if (view === 'habits') return 'Habit Tracker';
++    if (view === 'calendar') return 'Calendar';
++    if (view === 'master') return 'Yearly Goals';
++    if (view === 'analytics') return 'Analytics';
+     if (view === 'goals') {
+       const { type, id } = selectedPeriod;
+       if (type === 'daily') return id === new Date().toISOString().split('T')[0] ? "Today's Planning" : `Planning for ${id}`;
+@@ -26,48 +83,79 @@ function App() {
+   };
+ 
+   return (
+-    <div className={`app-container ${isDarkMode ? 'dark' : 'light'}`} style={{ display: 'flex', height: '100vh', width: '100vw' }}>
+-      <Sidebar />
++    <div className="app-container">
++      <Sidebar 
++        isOpen={isSidebarOpen}
++        onClose={() => setIsSidebarOpen(false)}
++        isMobileMode={isMobileMode}
++      />
+       
+-      <main className="content" style={{ flex: 1, padding: '2rem 3rem', overflowY: 'auto', position: 'relative' }}>
+-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
+-          <h1 style={{ fontSize: '2.5rem', fontWeight: 700 }}>
+-            {getTitle()}
+-          </h1>
++      <div 
++        className={`overlay ${isSidebarOpen && isMobileMode ? 'open' : ''}`} 
++        onClick={() => setIsSidebarOpen(false)}
++      ></div>
++
++      <main className="main-wrapper">
++        <header className="header-wrapper">
++          <div className="header-title-container">
++            <button 
++              className={`mobile-menu-btn ${isSidebarOpen ? 'active' : ''}`} 
++              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
++              aria-label="Toggle Menu"
++            >
++              <HamburgerIcon isOpen={isSidebarOpen} />
++            </button>
++            <div>
++              <h1 className="page-title" style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-0.04em', margin: 0, background: 'linear-gradient(to right, #fff, rgba(255,255,255,0.4))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
++                {getTitle()}
++              </h1>
++              <p style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 700, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '0.25rem' }}>
++                Progress Tracker
++              </p>
++            </div>
++          </div>
+           
+-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+-            {view === 'goals' && (
+-// ...
+-              <button 
+-                onClick={() => setIsModalOpen(true)}
+-                style={{
+-                  background: 'var(--primary)',
+-                  color: 'white',
+-                  padding: '0.75rem 1.5rem',
+-                  borderRadius: '12px',
+-                  display: 'flex',
+-                  alignItems: 'center',
+-                  gap: '0.5rem',
+-                  fontWeight: 600,
+-                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+-                }}
+-              >
+-                <Plus size={20} /> Add Goal
+-              </button>
+-            )}
+-            <div className="avatar" style={{ width: '40px', height: '40px', background: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>U</div>
++          <div className="header-actions" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
++            <button 
++              onClick={() => setIsModalOpen(true)}
++              style={{
++                background: 'linear-gradient(135deg, var(--primary), var(--primary-deep))',
++                color: '#fff',
++                padding: '1.1rem 2.25rem',
++                borderRadius: '18px',
++                fontWeight: 800,
++                fontSize: '1rem',
++                border: 'none',
++                boxShadow: '0 10px 25px rgba(99, 102, 241, 0.4)'
++              }}
++              className="hover-glow"
++            >
++              + Create New Goal
++            </button>
+           </div>
+         </header>
+ 
+-        <div className="view-container">
+-          {view === 'dashboard' && <Dashboard />}
+-          {view === 'calendar' && <CalendarView />}
+-          {view === 'goals' && <GoalView />}
+-          {view === 'timeline' && <Timeline />}
+-        </div>
++        <section className="content-wrapper">
++          <AnimatePresence mode="wait">
++            <motion.div
++              key={view + (selectedPeriod.id || '')}
++              initial={{ opacity: 0, y: 30, scale: 0.98 }}
++              animate={{ opacity: 1, y: 0, scale: 1 }}
++              exit={{ opacity: 0, y: -30, scale: 0.98 }}
++              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
++            >
++              {view === 'dashboard' && <Dashboard setView={setView} setSelectedPeriod={setSelectedPeriod} />}
++              {view === 'habits' && <HabitTracker />}
++              {view === 'goals' && <GoalView />}
++              {view === 'calendar' && <CalendarView />}
++              {view === 'master' && <MasterPlanView />}
++              {view === 'analytics' && <AnalyticsView />}
++            </motion.div>
++          </AnimatePresence>
++        </section>
+       </main>
+ 
+-      {isModalOpen && <AddGoalModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />}
++      <AddGoalModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+     </div>
+   );
+ }
+diff --git a/src/components/AddGoalModal.jsx b/src/components/AddGoalModal.jsx
+index 654ef84..35e1371 100644
+--- a/src/components/AddGoalModal.jsx
++++ b/src/components/AddGoalModal.jsx
+@@ -1,99 +1,107 @@
+ import React, { useState } from 'react';
+ import { useAppContext } from '../context/AppContext';
+ import { motion, AnimatePresence } from 'framer-motion';
+-import { X } from 'lucide-react';
++import { X, Flag, Calendar } from 'lucide-react';
++
++const PRIORITIES = [
++  { id: 'high',   label: 'High',   color: '#ef4444', bg: 'rgba(239,68,68,0.12)'   },
++  { id: 'medium', label: 'Medium', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)'  },
++  { id: 'low',    label: 'Low',    color: '#10b981', bg: 'rgba(16,185,129,0.12)'  },
++];
+ 
+ const AddGoalModal = ({ isOpen, onClose }) => {
+   const { selectedPeriod, addGoal } = useAppContext();
+   const [text, setText] = useState('');
++  const [priority, setPriority] = useState('medium');
++  const [deadline, setDeadline] = useState('');
+ 
+   const handleSubmit = (e) => {
+     e.preventDefault();
+     if (text.trim()) {
+-      addGoal(selectedPeriod.type, selectedPeriod.id, text.trim());
++      addGoal(selectedPeriod.type, selectedPeriod.id, text.trim(), priority, deadline || null);
+       setText('');
++      setPriority('medium');
++      setDeadline('');
+       onClose();
+     }
+   };
+ 
++  const inputStyle = {
++    width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
++    padding: '0.9rem 1.25rem', borderRadius: '14px', color: 'white',
++    fontSize: '1rem', fontWeight: 600, outline: 'none', fontFamily: 'inherit',
++    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.15)'
++  };
++
++  const labelStyle = {
++    display: 'block', color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem',
++    fontWeight: 900, marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.15em'
++  };
++
+   return (
+     <AnimatePresence>
+       {isOpen && (
+-        <div 
+-          style={{ 
+-            position: 'fixed', 
+-            inset: 0, 
+-            background: 'rgba(0, 0, 0, 0.8)', 
+-            backdropFilter: 'blur(8px)',
+-            display: 'flex',
+-            alignItems: 'center',
+-            justifyContent: 'center',
+-            zIndex: 1000
+-          }}
++        <div
++          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+           onClick={onClose}
+         >
+-          <motion.div 
+-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
++          <motion.div
++            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+             animate={{ opacity: 1, scale: 1, y: 0 }}
+-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+-            style={{ 
+-              width: '100%', 
+-              maxWIdth: '450px', 
+-              background: '#1e293b', 
+-              borderRadius: '24px', 
+-              padding: '2.5rem',
+-              border: '1px solid var(--glass-border)',
+-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+-              margin: '1.5rem'
+-            }}
++            exit={{ opacity: 0, scale: 0.92, y: 20 }}
++            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
++            style={{ width: '100%', maxWidth: '480px', background: '#0f172a', borderRadius: '24px', padding: '2rem', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 30px 60px rgba(0,0,0,0.6)', margin: '1.5rem' }}
+             onClick={e => e.stopPropagation()}
+           >
+-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+-              <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Add New Goal</h2>
+-              <button onClick={onClose} style={{ color: '#94a3b8' }}><X size={24} /></button>
++            {/* Header */}
++            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem' }}>
++              <h2 style={{ fontSize: '1.5rem', fontWeight: 900, background: 'linear-gradient(to right, #fff, var(--primary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
++                Add New Goal
++              </h2>
++              <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>
++                <X size={17} />
++              </button>
+             </div>
+ 
+-            <form onSubmit={handleSubmit}>
+-              <div style={{ marginBottom: '2rem' }}>
+-                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem' }}>Goal Description</label>
+-                <input 
+-                  autoFocus
+-                  type="text" 
+-                  value={text} 
+-                  onChange={e => setText(e.target.value)}
+-                  placeholder="e.g., Complete UI Mockup"
+-                  style={{
+-                    width: '100%',
+-                    background: 'rgba(255, 255, 255, 0.05)',
+-                    border: '1px solid var(--glass-border)',
+-                    padding: '1rem 1.25rem',
+-                    borderRadius: '12px',
+-                    color: 'white',
+-                    fontSize: '1rem',
+-                    outline: 'none'
+-                  }}
+-                />
++            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
++              {/* Goal text */}
++              <div>
++                <label style={labelStyle}>Goal Description</label>
++                <input autoFocus type="text" value={text} onChange={e => setText(e.target.value)} placeholder="e.g., Complete Next.js course" style={inputStyle} />
++              </div>
++
++              {/* Priority */}
++              <div>
++                <label style={labelStyle}>Priority</label>
++                <div style={{ display: 'flex', gap: '0.6rem' }}>
++                  {PRIORITIES.map(p => (
++                    <button
++                      key={p.id} type="button" onClick={() => setPriority(p.id)}
++                      style={{ flex: 1, padding: '0.6rem', borderRadius: '12px', border: `1px solid ${priority === p.id ? p.color : 'rgba(255,255,255,0.08)'}`, background: priority === p.id ? p.bg : 'transparent', color: priority === p.id ? p.color : 'rgba(255,255,255,0.4)', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', transition: 'all 0.2s' }}
++                    >
++                      <Flag size={14} /> {p.label}
++                    </button>
++                  ))}
++                </div>
++              </div>
++
++              {/* Deadline */}
++              <div>
++                <label style={labelStyle}>Deadline (optional)</label>
++                <div style={{ position: 'relative' }}>
++                  <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)}
++                    style={{ ...inputStyle, colorScheme: 'dark', paddingLeft: '2.75rem' }}
++                  />
++                  <Calendar size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
++                </div>
+               </div>
+ 
+-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+-                <button 
+-                  type="button" 
+-                  onClick={onClose} 
+-                  style={{ padding: '0.75rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}
+-                >
++              {/* Actions */}
++              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.25rem' }}>
++                <button type="button" onClick={onClose} style={{ padding: '0.75rem 1.5rem', color: 'rgba(255,255,255,0.4)', fontWeight: 700, background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                   Cancel
+                 </button>
+-                <button 
+-                  type="submit" 
+-                  style={{
+-                    background: 'var(--primary)',
+-                    color: 'white',
+-                    padding: '0.75rem 2rem',
+-                    borderRadius: '12px',
+-                    fontWeight: 700,
+-                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+-                  }}
+-                >
++                <button type="submit" disabled={!text.trim()} style={{ background: text.trim() ? 'linear-gradient(135deg, var(--primary), var(--primary-deep))' : 'rgba(255,255,255,0.05)', color: '#fff', padding: '0.75rem 2rem', borderRadius: '12px', fontWeight: 800, border: 'none', boxShadow: text.trim() ? '0 4px 15px rgba(99,102,241,0.35)' : 'none', cursor: text.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.3s' }}>
+                   Save Goal
+                 </button>
+               </div>
+diff --git a/src/components/CalendarView.jsx b/src/components/CalendarView.jsx
+index d439195..d688928 100644
+--- a/src/components/CalendarView.jsx
++++ b/src/components/CalendarView.jsx
+@@ -32,8 +32,9 @@ const CalendarView = () => {
+   }
+ 
+   const handleDateClick = (day) => {
+-    const d = new Date(year, month, day + 1); // +1 because toISOString might shift due to timezone if not careful
+-    const dateString = new Date(year, month, day).toLocaleDateString('en-CA'); // YYYY-MM-DD
++    if (!day) return;
++    const d = new Date(year, month, day);
++    const dateString = d.toLocaleDateString('en-CA'); // YYYY-MM-DD
+     setSelectedPeriod({ type: 'daily', id: dateString });
+     setView('goals');
+   };
+@@ -50,25 +51,26 @@ const CalendarView = () => {
+ 
+   return (
+     <motion.div 
+-      initial={{ opacity: 0, scale: 0.95 }}
++      initial={{ opacity: 0, scale: 0.98 }}
+       animate={{ opacity: 1, scale: 1 }}
+-      className="glass"
+-      style={{ padding: '2rem', borderRadius: '32px' }}
++      className="glass floating-glass"
++      style={{ padding: '2rem', position: 'relative', overflow: 'hidden' }}
+     >
+-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+-        <h2 style={{ fontSize: '1.75rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+-          <CalendarIcon size={28} className="text-primary" />
+-          {monthName} {year}
++      <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '200px', height: '200px', background: 'var(--primary)', filter: 'blur(80px)', opacity: 0.1 }}></div>
++      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3.5rem' }}>
++        <h2 style={{ fontSize: '2.5rem', fontWeight: 1000, display: 'flex', alignItems: 'center', gap: '1rem', letterSpacing: '-0.04em' }}>
++          <CalendarIcon size={36} style={{ color: 'var(--accent-cyan)' }} />
++          {monthName} <span style={{ opacity: 0.3 }}>{year}</span>
+         </h2>
+-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+-          <button onClick={prevMonth} className="glass-btn" style={{ padding: '0.5rem' }}><ChevronLeft size={20} /></button>
+-          <button onClick={nextMonth} className="glass-btn" style={{ padding: '0.5rem' }}><ChevronRight size={20} /></button>
++        <div style={{ display: 'flex', gap: '1rem' }}>
++          <button onClick={prevMonth} className="glass" style={{ padding: '0.8rem', borderRadius: '14px', color: '#fff' }}><ChevronLeft size={24} /></button>
++          <button onClick={nextMonth} className="glass" style={{ padding: '0.8rem', borderRadius: '14px', color: '#fff' }}><ChevronRight size={24} /></button>
+         </div>
+       </div>
+ 
+       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1rem' }}>
+         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+-          <div key={d} style={{ textAlign: 'center', fontWeight: 700, color: '#64748b', fontSize: '0.875rem', marginBottom: '0.5rem' }}>{d}</div>
++          <div key={d} style={{ textAlign: 'center', fontWeight: 800, color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem', opacity: 0.8 }}>{d}</div>
+         ))}
+         
+         {days.map((day, i) => {
+@@ -82,24 +84,24 @@ const CalendarView = () => {
+               disabled={!day}
+               style={{
+                 aspectRatio: '1',
+-                borderRadius: '16px',
+-                border: isToday ? '2px solid var(--primary)' : '1px solid var(--glass-border)',
+-                background: day ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
++                borderRadius: '20px',
++                border: isToday ? '2px solid var(--accent-cyan)' : '1px solid rgba(255,255,255,0.05)',
++                background: day ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
+                 display: 'flex',
+                 flexDirection: 'column',
+                 alignItems: 'center',
+                 justifyContent: 'center',
+-                gap: '4px',
++                gap: '8px',
+                 cursor: day ? 'pointer' : 'default',
+                 position: 'relative',
+-                transition: 'all 0.2s ease',
+-                transform: day ? 'none' : 'none'
++                transition: 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
++                boxShadow: isToday ? '0 0 30px rgba(34, 211, 238, 0.2)' : 'none'
+               }}
+-              className={day ? 'calendar-day-hover' : ''}
++              className={day ? 'calendar-day-hover hover-glow' : ''}
+             >
+-              <span style={{ fontSize: '1.1rem', fontWeight: 600, color: day ? 'inherit' : 'transparent' }}>{day}</span>
+-              {status === 'pending' && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#fbbf24' }}></div>}
+-              {status === 'completed' && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }}></div>}
++              <span style={{ fontSize: '1.4rem', fontWeight: 900, color: isToday ? '#fff' : (day ? 'rgba(255,255,255,0.8)' : 'transparent'), letterSpacing: '-0.02em' }}>{day}</span>
++              {status === 'pending' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)', boxShadow: '0 0 15px var(--accent)' }}></div>}
++              {status === 'completed' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 15px var(--success)' }}></div>}
+             </button>
+           );
+         })}
+diff --git a/src/components/Dashboard.jsx b/src/components/Dashboard.jsx
+index a3273e6..4f6aaab 100644
+--- a/src/components/Dashboard.jsx
++++ b/src/components/Dashboard.jsx
+@@ -2,18 +2,100 @@ import React from 'react';
+ import { useAppContext } from '../context/AppContext';
+ import ProgressBar from './ProgressBar';
+ import { motion } from 'framer-motion';
++import { Flame, Trophy, ArrowRight } from 'lucide-react';
+ 
+-const Dashboard = () => {
+-  const { goals, setView, setSelectedPeriod, streak } = useAppContext();
++// SVG Progress Ring
++const ProgressRing = ({ percentage, size = 90, strokeWidth = 7, color = '#6366f1' }) => {
++  const radius = (size - strokeWidth) / 2;
++  const circumference = 2 * Math.PI * radius;
++  const strokeDashoffset = circumference - (percentage / 100) * circumference;
++  return (
++    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
++      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={strokeWidth} />
++      <circle
++        cx={size / 2} cy={size / 2} r={radius} fill="none"
++        stroke={color} strokeWidth={strokeWidth}
++        strokeDasharray={circumference}
++        strokeDashoffset={strokeDashoffset}
++        strokeLinecap="round"
++        style={{ transition: 'stroke-dashoffset 1s ease' }}
++      />
++    </svg>
++  );
++};
++
++// 7-bar weekly sparkline
++const WeekSparkline = ({ goals, getDatesForWeek }) => {
++  const today = new Date();
++  const bars = [];
++  for (let i = 6; i >= 0; i--) {
++    const d = new Date(today);
++    d.setDate(today.getDate() - i);
++    const dateStr = d.toISOString().split('T')[0];
++    const dayGoals = goals.daily[dateStr]?.goals || [];
++    const total = dayGoals.length;
++    const done = dayGoals.filter(g => g.completed).length;
++    const pct = total > 0 ? done / total : 0;
++    const isToday = i === 0;
++    bars.push({ pct, total, done, day: ['S','M','T','W','T','F','S'][d.getDay()], isToday });
++  }
++  return (
++    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '60px' }}>
++      {bars.map((b, i) => (
++        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', height: '100%', justifyContent: 'flex-end' }}>
++          <div style={{
++            width: '100%', borderRadius: '6px 6px 0 0',
++            height: `${Math.max(b.pct * 44 + 4, 4)}px`,
++            background: b.pct === 1 ? 'var(--success)' : b.pct > 0 ? 'var(--primary)' : 'rgba(255,255,255,0.06)',
++            boxShadow: b.pct > 0 ? `0 0 10px ${b.pct === 1 ? 'rgba(16,185,129,0.4)' : 'rgba(99,102,241,0.3)'}` : 'none',
++            transition: 'height 0.6s ease',
++            border: b.isToday ? '1px solid var(--accent-cyan)' : 'none',
++          }} />
++          <span style={{ fontSize: '0.6rem', fontWeight: 700, color: b.isToday ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.3)' }}>{b.day}</span>
++        </div>
++      ))}
++    </div>
++  );
++};
++
++const MOTIVATIONAL_MESSAGES = [
++  { min: 0,  max: 0,  msg: "Every legend starts with day 1. Today is yours. 🌱" },
++  { min: 1,  max: 2,  msg: "You've started! Keep the momentum alive. ⚡" },
++  { min: 3,  max: 6,  msg: "3+ days strong. A habit is forming — don't break it! 🔥" },
++  { min: 7,  max: 13, msg: "One full week. You're in a rhythm now. Keep pushing! 🚀" },
++  { min: 14, max: 29, msg: "Two weeks of consistency. You're becoming unstoppable! 💪" },
++  { min: 30, max: 59, msg: "30 days! You've built a genuine habit. Legendary. 🏆" },
++  { min: 60, max: Infinity, msg: "60+ days. You're in elite territory. Stay there. 👑" },
++];
++
++const getMotivationalMsg = (streak) =>
++  MOTIVATIONAL_MESSAGES.find(m => streak >= m.min && streak <= m.max)?.msg || '';
++
++const RING_COLORS = { daily: '#6366f1', weekly: '#f472b6', yearly: '#22d3ee' };
++
++const Dashboard = ({ setView, setSelectedPeriod }) => {
++  const { goals, streak, getDatesForWeek, history } = useAppContext();
+   const today = new Date().toISOString().split('T')[0];
+ 
+   const getStatsForPeriodType = (type) => {
+-    const periods = goals[type];
+-    let total = 0;
+-    let completed = 0;
++    if (type === 'weekly') {
++      let total = 0, completed = 0;
++      [1, 2, 3].forEach(wId => {
++        const weeklyGoals = goals.weekly?.[wId]?.goals || [];
++        const dates = getDatesForWeek(wId) || [];
++        const dailyGoals = dates.flatMap(d => goals.daily?.[d]?.goals || []);
++        total += weeklyGoals.length + dailyGoals.length;
++        completed += weeklyGoals.filter(g => g?.completed).length + dailyGoals.filter(g => g?.completed).length;
++      });
++      return { type, total, completed, percentage: total > 0 ? (completed / total) * 100 : 0 };
++    }
++    const periods = goals[type] || {};
++    let total = 0, completed = 0;
+     Object.values(periods).forEach(p => {
+-      total += p.goals.length;
+-      completed += p.goals.filter(g => g.completed).length;
++      if (p && Array.isArray(p.goals)) {
++        total += p.goals.length;
++        completed += p.goals.filter(g => g && g.completed).length;
++      }
+     });
+     return { type, total, completed, percentage: total > 0 ? (completed / total) * 100 : 0 };
+   };
+@@ -29,51 +111,101 @@ const Dashboard = () => {
+   const overallPercentage = totalGoals > 0 ? (totalCompleted / totalGoals) * 100 : 0;
+ 
+   return (
+-    <motion.div 
++    <motion.div
+       initial={{ opacity: 0, y: 20 }}
+       animate={{ opacity: 1, y: 0 }}
+-      transition={{ duration: 0.5 }}
++      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
++      style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+     >
+-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+-        <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+-          <span style={{ color: '#94a3b8', fontSize: '0.875rem', fontWeight: 600 }}>Current Streak</span>
+-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+-            <span style={{ fontSize: '2rem', fontWeight: 800 }}>{streak}</span>
+-            <span style={{ fontSize: '1.5rem' }}>🔥</span>
++      {/* Top Stats Row */}
++      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
++        {/* Streak Card */}
++        <div className="glass floating-glass" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem', position: 'relative', overflow: 'hidden' }}>
++          <div style={{ position: 'absolute', top: '-20%', right: '-20%', width: '120px', height: '120px', background: 'var(--primary)', filter: 'blur(50px)', opacity: 0.12 }} />
++          <div style={{ width: '52px', height: '52px', background: 'linear-gradient(135deg, #f97316, #ef4444)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 8px 20px rgba(239,68,68,0.35)' }}>
++            <Flame size={24} color="#fff" />
++          </div>
++          <div>
++            <div style={{ fontSize: '2.5rem', fontWeight: 950, color: '#fff', letterSpacing: '-0.05em', lineHeight: 1 }}>{streak}</div>
++            <div style={{ color: 'var(--accent-cyan)', fontSize: '0.72rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>Day Streak</div>
+           </div>
+         </div>
+-        <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+-          <span style={{ color: '#94a3b8', fontSize: '0.875rem', fontWeight: 600 }}>Total Achievements</span>
+-          <div style={{ fontSize: '2rem', fontWeight: 800 }}>{totalCompleted}</div>
++
++        {/* Total Completed */}
++        <div className="glass floating-glass" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem', position: 'relative', overflow: 'hidden' }}>
++          <div style={{ position: 'absolute', top: '-20%', right: '-20%', width: '120px', height: '120px', background: 'var(--accent)', filter: 'blur(50px)', opacity: 0.12 }} />
++          <div style={{ width: '52px', height: '52px', background: 'linear-gradient(135deg, var(--primary), var(--accent))', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 8px 20px rgba(99,102,241,0.35)' }}>
++            <Trophy size={24} color="#fff" />
++          </div>
++          <div>
++            <div style={{ fontSize: '2.5rem', fontWeight: 950, color: '#fff', letterSpacing: '-0.05em', lineHeight: 1 }}>{totalCompleted}</div>
++            <div style={{ color: 'var(--accent)', fontSize: '0.72rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>Goals Completed</div>
++          </div>
+         </div>
++
++        {/* Weekly Sparkline */}
++        <div className="glass floating-glass" style={{ padding: '1.5rem', position: 'relative', overflow: 'hidden' }}>
++          <div style={{ fontSize: '0.72rem', fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '0.75rem' }}>This Week</div>
++          <WeekSparkline goals={goals} getDatesForWeek={getDatesForWeek} />
++        </div>
++      </div>
++
++      {/* Motivational message */}
++      <div className="glass" style={{ padding: '1.25rem 1.75rem', borderRadius: '16px', background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(244,114,182,0.08))', border: '1px solid rgba(255,255,255,0.07)' }}>
++        <p style={{ color: 'rgba(255,255,255,0.75)', fontWeight: 700, fontSize: '1rem', margin: 0, letterSpacing: '-0.01em' }}>
++          {getMotivationalMsg(streak)}
++        </p>
+       </div>
+ 
+-      <div className="glass" style={{ padding: '2.5rem', borderRadius: '24px', marginBottom: '2.5rem', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.15))' }}>
+-        <h2 style={{ fontSize: '1.25rem', color: '#94a3b8', fontWeight: 600, marginBottom: '0.5rem' }}>Overall Mastery</h2>
+-        <div style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '1rem' }}>{Math.round(overallPercentage)}%</div>
++      {/* Total Progress bar */}
++      <div className="glass floating-glass" style={{ padding: '2rem', background: 'linear-gradient(135deg, rgba(99,102,241,0.07), rgba(244,114,182,0.07))', position: 'relative', overflow: 'hidden' }}>
++        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '70%', height: '70%', background: 'radial-gradient(circle, rgba(99,102,241,0.07), transparent 70%)', pointerEvents: 'none' }} />
++        <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem', marginBottom: '1.25rem' }}>
++          <div style={{ fontSize: '4rem', fontWeight: 1000, background: 'linear-gradient(to right, #fff, var(--accent-cyan))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.06em', lineHeight: 0.9 }}>
++            {Math.round(overallPercentage)}<span style={{ fontSize: '2rem', opacity: 0.5 }}>%</span>
++          </div>
++          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>Total Progress</span>
++        </div>
+         <ProgressBar percentage={overallPercentage} />
+       </div>
+ 
+-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
++      {/* Period Progress Rings */}
++      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
+         {dashboardStats.map(s => (
+-          <motion.div 
++          <motion.div
+             key={s.type}
+-            whileHover={{ y: -5 }}
+-            className="glass" 
+-            style={{ padding: '2rem', borderRadius: '24px' }}
++            whileHover={{ y: -4, scale: 1.01 }}
++            className="glass floating-glass"
++            style={{ padding: '1.75rem', border: '1px solid rgba(255,255,255,0.05)' }}
+           >
+-            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem' }}>
+-              {s.type.charAt(0).toUpperCase() + s.type.slice(1)} Goals
+-            </h3>
+-            <div style={{ color: '#94a3b8', fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem' }}>
+-              {s.completed} of {s.total} completed
++            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
++              <div style={{ position: 'relative', flexShrink: 0 }}>
++                <ProgressRing percentage={s.percentage} color={RING_COLORS[s.type]} size={80} strokeWidth={7} />
++                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 900, color: '#fff' }}>
++                  {Math.round(s.percentage)}%
++                </div>
++              </div>
++              <div style={{ flex: 1 }}>
++                <h3 style={{ fontSize: '1.25rem', fontWeight: 900, letterSpacing: '-0.02em', marginBottom: '0.3rem', textTransform: 'capitalize' }}>{s.type}</h3>
++                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem', fontWeight: 700 }}>
++                  {s.completed} / {s.total} complete
++                </div>
++              </div>
+             </div>
+-            <ProgressBar percentage={s.percentage} />
+-            <button 
+-              onClick={() => { setView('goals'); setSelectedPeriod({ type: s.type, id: s.type === 'daily' ? today : (s.type === 'weekly' ? 1 : 2026) }); }}
+-              style={{ width: '100%', marginTop: '1.5rem', padding: '0.875rem', borderRadius: '12px', border: '1px solid var(--glass-border)', color: '#f1f5f9', fontWeight: 600 }}
++            <button
++              onClick={() => {
++                setView('goals');
++                setSelectedPeriod({ type: s.type, id: s.type === 'daily' ? today : (s.type === 'weekly' ? 1 : 2026) });
++              }}
++              style={{
++                width: '100%', marginTop: '1.25rem', padding: '0.85rem',
++                borderRadius: '14px', border: '1px solid rgba(255,255,255,0.08)',
++                background: 'rgba(255,255,255,0.03)', color: '#fff', fontWeight: 700,
++                fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
++              }}
++              className="hover-glow"
+             >
+-              Focus Here
++              View Goals <ArrowRight size={15} />
+             </button>
+           </motion.div>
+         ))}
+diff --git a/src/components/GoalView.jsx b/src/components/GoalView.jsx
+index 9c7a9d5..0650f1a 100644
+--- a/src/components/GoalView.jsx
++++ b/src/components/GoalView.jsx
+@@ -2,13 +2,40 @@ import React from 'react';
+ import { useAppContext } from '../context/AppContext';
+ import ProgressBar from './ProgressBar';
+ import { motion, AnimatePresence } from 'framer-motion';
+-import { Trash2, CheckCircle, Circle } from 'lucide-react';
++import { Trash2, CheckCircle, Circle, Flag, Clock } from 'lucide-react';
++
++const PRIORITY_META = {
++  high:   { color: '#ef4444', bg: 'rgba(239,68,68,0.13)',   label: 'High'   },
++  medium: { color: '#f59e0b', bg: 'rgba(245,158,11,0.13)',  label: 'Medium' },
++  low:    { color: '#10b981', bg: 'rgba(16,185,129,0.13)',  label: 'Low'    },
++};
++
++const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
+ 
+ const GoalView = () => {
+-  const { selectedPeriod, goals, toggleGoal, deleteGoal } = useAppContext();
+-  const periodData = goals[selectedPeriod.type][selectedPeriod.id] || { goals: [] };
+-  const periodGoals = periodData.goals;
+-  
++  const { selectedPeriod, goals, toggleGoal, deleteGoal, getDatesForWeek } = useAppContext();
++
++  let periodGoals = [];
++  if (selectedPeriod.type === 'weekly') {
++    const weeklyData = goals.weekly[selectedPeriod.id] || { goals: [] };
++    const datesInWeek = getDatesForWeek(selectedPeriod.id);
++    const dailyGoalsInWeek = datesInWeek.flatMap(date => {
++      const dayData = goals.daily[date] || { goals: [] };
++      return dayData.goals.map(g => ({ ...g, periodId: date, type: 'daily', isMirrored: true }));
++    });
++    const mainWeeklyGoals = (weeklyData.goals || []).map(g => ({ ...g, periodId: selectedPeriod.id, type: 'weekly' }));
++    periodGoals = [...mainWeeklyGoals, ...dailyGoalsInWeek];
++  } else {
++    const periodData = goals[selectedPeriod.type][selectedPeriod.id] || { goals: [] };
++    periodGoals = periodData.goals.map(g => ({ ...g, periodId: selectedPeriod.id, type: selectedPeriod.type }));
++  }
++
++  // Sort: incomplete first by priority, then completed
++  periodGoals = [...periodGoals].sort((a, b) => {
++    if (a.completed !== b.completed) return a.completed ? 1 : -1;
++    return (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1);
++  });
++
+   const completedCount = periodGoals.filter(g => g.completed).length;
+   const percentage = periodGoals.length > 0 ? (completedCount / periodGoals.length) * 100 : 0;
+ 
+@@ -19,79 +46,118 @@ const GoalView = () => {
+     return '';
+   };
+ 
++  const isOverdue = (deadline) => {
++    if (!deadline) return false;
++    return new Date(deadline) < new Date() && new Date(deadline).toISOString().split('T')[0] !== new Date().toISOString().split('T')[0];
++  };
++
+   return (
+-    <motion.div 
++    <motion.div
+       key={`${selectedPeriod.type}-${selectedPeriod.id}`}
+       initial={{ opacity: 0, x: 20 }}
+       animate={{ opacity: 1, x: 0 }}
+       exit={{ opacity: 0, x: -20 }}
+-      transition={{ duration: 0.4 }}
++      transition={{ duration: 0.35 }}
+     >
+-      <div className="glass" style={{ padding: '2rem', borderRadius: '24px', marginBottom: '2rem' }}>
+-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+-          <div>
+-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>
+-              {selectedPeriod.type.charAt(0).toUpperCase() + selectedPeriod.type.slice(1)} Mastery
+-            </h3>
+-            <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>{getSubTitle()}</p>
+-          </div>
+-          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)' }}>{completedCount}/{periodGoals.length}</div>
++      {/* Header card */}
++      <div className="glass floating-glass" style={{ padding: '1.75rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', position: 'relative', overflow: 'hidden' }}>
++        <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: '150px', height: '150px', background: 'var(--primary)', filter: 'blur(60px)', opacity: 0.08, pointerEvents: 'none' }} />
++        <div>
++          <h3 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '0.3rem', letterSpacing: '-0.03em' }}>
++            {selectedPeriod.type.charAt(0).toUpperCase() + selectedPeriod.type.slice(1)} Goals
++          </h3>
++          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{getSubTitle()}</p>
++        </div>
++        <div style={{ fontSize: '2.5rem', fontWeight: 1000, color: 'var(--accent-cyan)', letterSpacing: '-0.05em' }}>
++          {completedCount}<span style={{ fontSize: '1.2rem', opacity: 0.3 }}>/{periodGoals.length}</span>
+         </div>
+-        <ProgressBar percentage={percentage} />
+       </div>
+ 
+-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+-        <AnimatePresence>
+-          {periodGoals.map(goal => (
+-            <motion.div
+-              key={goal.id}
+-              initial={{ opacity: 0, y: 10 }}
+-              animate={{ opacity: 1, y: 0 }}
+-              exit={{ opacity: 0, scale: 0.95 }}
+-              className="glass"
+-              style={{
+-                padding: '1.25rem 1.5rem',
+-                borderRadius: '16px',
+-                display: 'flex',
+-                alignItems: 'center',
+-                gap: '1.25rem',
+-                background: goal.completed ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+-                border: goal.completed ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid var(--glass-border)',
+-                transition: 'all 0.3s ease'
+-              }}
+-            >
+-              <button 
+-                onClick={() => toggleGoal(selectedPeriod.type, selectedPeriod.id, goal.id)}
+-                style={{ color: goal.completed ? '#10b981' : '#475569', display: 'flex', alignItems: 'center' }}
+-              >
+-                {goal.completed ? <CheckCircle size={24} /> : <Circle size={24} />}
+-              </button>
+-              
+-              <span style={{ 
+-                flex: 1, 
+-                fontSize: '1.1rem', 
+-                fontWeight: 500,
+-                textDecoration: goal.completed ? 'line-through' : 'none',
+-                color: goal.completed ? '#64748b' : 'inherit'
+-              }}>
+-                {goal.text}
+-              </span>
++      <div style={{ padding: '0 0.5rem 1.5rem' }}>
++        <ProgressBar percentage={percentage} />
++      </div>
+ 
+-              <button 
+-                onClick={() => deleteGoal(selectedPeriod.type, selectedPeriod.id, goal.id)}
+-                style={{ color: '#ef4444', padding: '0.5rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center' }}
+-              >
+-                <Trash2 size={18} />
+-              </button>
+-            </motion.div>
+-          ))}
+-        </AnimatePresence>
+-        
+-        {periodGoals.length === 0 && (
+-          <div style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>
+-            <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>No goals planned for this {selectedPeriod.type} yet.</p>
+-            <p style={{ fontSize: '0.875rem' }}>Click "Add Goal" to get started!</p>
++      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
++        {periodGoals.length === 0 ? (
++          <div className="glass" style={{ padding: '3rem', textAlign: 'center', borderRadius: '24px', color: 'var(--text-dim)' }}>
++            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>✨</div>
++            <p style={{ fontSize: '1rem', fontWeight: 600 }}>No goals yet. Add one above!</p>
+           </div>
++        ) : (
++          <AnimatePresence>
++            {periodGoals.map((goal, index) => {
++              const pm = PRIORITY_META[goal.priority] || PRIORITY_META.medium;
++              const overdue = !goal.completed && isOverdue(goal.deadline);
++              return (
++                <motion.div
++                  layout
++                  initial={{ opacity: 0, y: 12 }}
++                  animate={{ opacity: 1, y: 0 }}
++                  exit={{ opacity: 0, scale: 0.96 }}
++                  transition={{ delay: index * 0.03 }}
++                  key={goal.id}
++                  className="glass"
++                  style={{
++                    display: 'flex', alignItems: 'center', gap: '1rem',
++                    padding: '1.1rem 1.5rem', borderRadius: '18px',
++                    borderLeft: goal.isMirrored ? '3px solid var(--accent)' : `3px solid ${pm.color}`,
++                    opacity: goal.completed ? 0.6 : 1,
++                    transition: 'opacity 0.3s'
++                  }}
++                >
++                  <motion.div
++                    whileTap={{ scale: 0.88 }}
++                    onClick={() => toggleGoal(goal.type, goal.periodId, goal.id)}
++                    style={{ cursor: 'pointer', color: goal.completed ? 'var(--success)' : 'rgba(255,255,255,0.3)', flexShrink: 0 }}
++                  >
++                    {goal.completed ? <CheckCircle size={24} /> : <Circle size={24} />}
++                  </motion.div>
++
++                  <div style={{ flex: 1, minWidth: 0 }}>
++                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', flexWrap: 'wrap' }}>
++                      <span style={{
++                        fontSize: '1.05rem', fontWeight: 700,
++                        textDecoration: goal.completed ? 'line-through' : 'none',
++                        color: goal.completed ? 'rgba(255,255,255,0.25)' : '#fff',
++                        transition: 'all 0.3s', letterSpacing: '-0.01em', wordBreak: 'break-word'
++                      }}>
++                        {goal.text}
++                      </span>
++                    </div>
++                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
++                      {/* Priority badge */}
++                      {goal.priority && (
++                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '3px 8px', borderRadius: '7px', background: pm.bg, color: pm.color, border: `1px solid ${pm.color}30` }}>
++                          <Flag size={10} /> {pm.label}
++                        </span>
++                      )}
++                      {/* Deadline */}
++                      {goal.deadline && (
++                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem', fontWeight: 800, color: overdue ? '#ef4444' : 'rgba(255,255,255,0.35)', letterSpacing: '0.05em' }}>
++                          <Clock size={10} />
++                          {overdue ? 'Overdue · ' : ''}{new Date(goal.deadline + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
++                        </span>
++                      )}
++                      {/* Mirrored tag */}
++                      {goal.isMirrored && (
++                        <span style={{ fontSize: '0.65rem', background: 'rgba(34,211,238,0.1)', color: 'var(--accent-cyan)', padding: '3px 8px', borderRadius: '7px', fontWeight: 900, letterSpacing: '0.08em', border: '1px solid rgba(34,211,238,0.2)' }}>
++                          🛰️ Mirrored
++                        </span>
++                      )}
++                    </div>
++                  </div>
++
++                  <motion.button
++                    whileHover={{ scale: 1.15, color: '#ef4444' }}
++                    onClick={() => deleteGoal(goal.type, goal.periodId, goal.id)}
++                    style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.2)', padding: '0.4rem', cursor: 'pointer', flexShrink: 0 }}
++                  >
++                    <Trash2 size={17} />
++                  </motion.button>
++                </motion.div>
++              );
++            })}
++          </AnimatePresence>
+         )}
+       </div>
+     </motion.div>
+diff --git a/src/components/Sidebar.jsx b/src/components/Sidebar.jsx
+index 23a8d5d..e4f1f30 100644
+--- a/src/components/Sidebar.jsx
++++ b/src/components/Sidebar.jsx
+@@ -1,123 +1,148 @@
+-import React from 'react';
++import React, { useState } from 'react';
+ import { useAppContext } from '../context/AppContext';
+-import { LayoutDashboard, Calendar as CalendarIcon, History, Moon, Sun, ChevronRight } from 'lucide-react';
++import {
++  LayoutDashboard, CalendarDays, CheckSquare, BarChart2,
++  Target, ChevronDown, X,
++  Calendar, Star, Sun
++} from 'lucide-react';
+ 
+-const Sidebar = () => {
+-  const { view, setView, selectedPeriod, setSelectedPeriod, isDarkMode, setIsDarkMode, streak } = useAppContext();
++const NavItem = ({ id, label, icon, isActive, onClick, indent = false }) => (
++  <button
++    onClick={onClick}
++    style={{
++      width: '100%',
++      display: 'flex',
++      alignItems: 'center',
++      gap: '0.85rem',
++      padding: indent ? '0.75rem 1.4rem 0.75rem 2.5rem' : '0.85rem 1.4rem',
++      borderRadius: '14px',
++      color: isActive ? '#fff' : 'rgba(255,255,255,0.5)',
++      background: isActive
++        ? 'linear-gradient(135deg, var(--primary), var(--primary-deep))'
++        : 'transparent',
++      border: isActive ? 'none' : '1px solid transparent',
++      cursor: 'pointer',
++      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
++      boxShadow: isActive ? '0 8px 20px rgba(99, 102, 241, 0.3)' : 'none',
++      fontWeight: isActive ? 800 : 600,
++      fontSize: indent ? '0.9rem' : '0.95rem',
++      textAlign: 'left',
++      borderLeft: isActive ? 'none' : 'none',
++      position: 'relative',
++    }}
++    className={isActive ? '' : 'hover-glow'}
++  >
++    <span style={{ color: isActive ? '#fff' : 'var(--primary)', flexShrink: 0, opacity: isActive ? 1 : 0.8 }}>
++      {icon}
++    </span>
++    {label}
++  </button>
++);
+ 
+-  const periods = [
+-    { type: 'daily', label: "Today's Goals", id: new Date().toISOString().split('T')[0] },
+-    { type: 'weekly', label: "Weekly Planning", id: 1 }, // Default to Week 1
+-    { type: 'yearly', label: "Yearly Vision", id: 2026 }
+-  ];
++const SectionLabel = ({ children }) => (
++  <div style={{
++    fontSize: '0.65rem',
++    fontWeight: 900,
++    color: 'var(--accent-cyan)',
++    textTransform: 'uppercase',
++    letterSpacing: '0.18em',
++    opacity: 0.7,
++    padding: '1.5rem 1.4rem 0.5rem',
++  }}>
++    {children}
++  </div>
++);
++
++const Sidebar = ({ isOpen, onClose, isMobileMode }) => {
++  const { view, setView, selectedPeriod, setSelectedPeriod } = useAppContext();
++  const [goalsOpen, setGoalsOpen] = useState(true);
++
++  const today = new Date().toISOString().split('T')[0];
++
++  const navigate = (viewId, period = null) => {
++    setView(viewId);
++    if (period) setSelectedPeriod(period);
++    if (onClose && isMobileMode) onClose();
++  };
++
++  const isGoalActive = (type) => view === 'goals' && selectedPeriod.type === type;
++  
++  const sidebarClasses = `sidebar-wrapper ${isOpen ? 'open' : ''} ${!isOpen && !isMobileMode ? 'collapsed-desktop' : ''}`;
+ 
+   return (
+-    <aside className="glass" style={{ width: '280px', height: '100%', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column' }}>
+-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
+-        <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', borderRadius: '8px' }}></div>
+-        <span style={{ fontSize: '1.5rem', fontWeight: 800, background: 'linear-gradient(to right, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Tracker</span>
+-      </div>
++    <aside className={sidebarClasses}>
++      <div className="floating-glass" style={{
++        width: '100%', flex: 1, padding: '1.5rem 1rem',
++        display: 'flex', flexDirection: 'column',
++        position: 'relative', overflow: 'hidden'
++      }}>
++        {/* Glow blob */}
++        <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'var(--primary)', filter: 'blur(70px)', opacity: 0.08, pointerEvents: 'none' }} />
+ 
+-      <div style={{ marginBottom: '2rem', padding: '0.75rem 1rem', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+-        <span style={{ fontSize: '1.25rem' }}>🔥</span>
+-        <div>
+-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>STREAK</div>
+-          <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{streak} Days</div>
++        {/* Logo + Close */}
++        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', padding: '0 0.4rem' }}>
++          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
++            <div style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, var(--primary), var(--accent))', borderRadius: '10px', boxShadow: '0 6px 16px rgba(99, 102, 241, 0.4)', flexShrink: 0 }} />
++            <span style={{ fontSize: '1.4rem', fontWeight: 900, background: 'linear-gradient(to right, #fff, var(--accent-cyan))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.04em' }}>
++              PRO TRACK
++            </span>
++          </div>
++          <button
++            style={{ display: isOpen ? 'flex' : 'none', padding: '0.4rem', border: 'none', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', cursor: 'pointer', color: '#fff', alignItems: 'center', justifyContent: 'center' }}
++            onClick={onClose}
++          >
++            <X size={18} />
++          </button>
+         </div>
+-      </div>
+-
+-      <nav style={{ flex: 1, overflowY: 'auto' }}>
+-        <button
+-          onClick={() => setView('dashboard')}
+-          style={{
+-            width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem', borderRadius: '12px',
+-            color: view === 'dashboard' ? 'var(--primary)' : '#94a3b8',
+-            background: view === 'dashboard' ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+-            marginBottom: '0.5rem', transition: 'all 0.2s ease',
+-            border: view === 'dashboard' ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid transparent'
+-          }}
+-        >
+-          <LayoutDashboard size={20} />
+-          <span style={{ fontWeight: 600 }}>Dashboard</span>
+-        </button>
+ 
+-        <button
+-          onClick={() => setView('calendar')}
+-          style={{
+-            width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem', borderRadius: '12px',
+-            color: view === 'calendar' ? 'var(--primary)' : '#94a3b8',
+-            background: view === 'calendar' ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+-            marginBottom: '0.5rem', transition: 'all 0.2s ease',
+-            border: view === 'calendar' ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid transparent'
+-          }}
+-        >
+-          <CalendarIcon size={20} />
+-          <span style={{ fontWeight: 600 }}>Calendar</span>
+-        </button>
++        {/* Nav */}
++        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem', overflowY: 'auto' }}>
+ 
+-        <button
+-          onClick={() => setView('timeline')}
+-          style={{
+-            width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem', borderRadius: '12px',
+-            color: view === 'timeline' ? 'var(--primary)' : '#94a3b8',
+-            background: view === 'timeline' ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+-            marginBottom: '1.5rem', transition: 'all 0.2s ease',
+-            border: view === 'timeline' ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid transparent'
+-          }}
+-        >
+-          <History size={20} />
+-          <span style={{ fontWeight: 600 }}>Timeline</span>
+-        </button>
++          <SectionLabel>Tracking</SectionLabel>
++          <NavItem id="dashboard" label="Dashboard" icon={<LayoutDashboard size={18} />} isActive={view === 'dashboard'} onClick={() => navigate('dashboard')} />
++          <NavItem id="habits" label="Habits" icon={<CheckSquare size={18} />} isActive={view === 'habits'} onClick={() => navigate('habits')} />
++          <NavItem id="calendar" label="Calendar" icon={<CalendarDays size={18} />} isActive={view === 'calendar'} onClick={() => navigate('calendar')} />
++          <NavItem id="analytics" label="Analytics" icon={<BarChart2 size={18} />} isActive={view === 'analytics'} onClick={() => navigate('analytics')} />
+ 
+-        <div style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '0.75rem', marginLeft: '0.5rem' }}>GOALS</div>
+-        
+-        {periods.map(p => (
++          <SectionLabel>Goals</SectionLabel>
++          {/* Expandable Goals Group */}
+           <button
+-            key={p.type}
+-            onClick={() => { setView('goals'); setSelectedPeriod({ type: p.type, id: p.id }); }}
++            onClick={() => setGoalsOpen(o => !o)}
+             style={{
+-              width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem', borderRadius: '12px',
+-              color: (view === 'goals' && selectedPeriod.type === p.type) ? 'var(--primary)' : '#94a3b8',
+-              background: (view === 'goals' && selectedPeriod.type === p.type) ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+-              marginBottom: '0.5rem', transition: 'all 0.2s ease',
+-              border: (view === 'goals' && selectedPeriod.type === p.type) ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid transparent'
++              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
++              padding: '0.85rem 1.4rem', borderRadius: '14px',
++              color: (view === 'goals' || view === 'master') ? '#fff' : 'rgba(255,255,255,0.5)',
++              background: 'transparent', border: 'none', cursor: 'pointer',
++              fontWeight: 700, fontSize: '0.95rem',
++              transition: 'all 0.2s'
+             }}
++            className="hover-glow"
+           >
+-            <CalendarIcon size={20} />
+-            <span style={{ fontWeight: 600 }}>{p.label}</span>
++            <span style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
++              <span style={{ color: 'var(--primary)', opacity: 0.8 }}><Target size={18} /></span>
++              All Goals
++            </span>
++            <span style={{ color: 'rgba(255,255,255,0.4)', transition: 'transform 0.3s', transform: goalsOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
++              <ChevronDown size={16} />
++            </span>
+           </button>
+-        ))}
+ 
+-        {view === 'goals' && selectedPeriod.type === 'weekly' && (
+-          <div style={{ marginLeft: '2.5rem', display: 'flex', flexDirection: 'column' }}>
+-            {[1, 2, 3].map(w => (
+-              <button
+-                key={w}
+-                onClick={() => setSelectedPeriod({ type: 'weekly', id: w })}
+-                style={{ 
+-                  padding: '0.5rem 0', textAlign: 'left', fontSize: '0.875rem', 
+-                  color: selectedPeriod.id === w ? 'var(--primary)' : '#64748b',
+-                  fontWeight: selectedPeriod.id === w ? 700 : 500
+-                }}
+-              >
+-                Week {w}
+-              </button>
+-            ))}
+-          </div>
+-        )}
+-      </nav>
++          {goalsOpen && (
++            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', marginBottom: '0.5rem' }}>
++              <NavItem indent id="daily" label="Daily Goals" icon={<Sun size={16} />} isActive={isGoalActive('daily')} onClick={() => navigate('goals', { type: 'daily', id: today })} />
++              <NavItem indent id="weekly" label="Weekly Goals" icon={<Calendar size={16} />} isActive={isGoalActive('weekly')} onClick={() => navigate('goals', { type: 'weekly', id: 1 })} />
++              <NavItem indent id="yearly" label="Yearly Goals" icon={<Star size={16} />} isActive={isGoalActive('yearly')} onClick={() => navigate('goals', { type: 'yearly', id: 2026 })} />
++              <NavItem indent id="master" label="All Goals View" icon={<BarChart2 size={16} />} isActive={view === 'master'} onClick={() => navigate('master')} />
++            </div>
++          )}
++        </nav>
+ 
+-      <div className="glass" style={{ marginTop: 'auto', padding: '1rem', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255, 255, 255, 0.03)' }}>
+-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#94a3b8' }}>
+-          {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
+-          <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Dark Mode</span>
++        {/* Footer hint */}
++        <div style={{ padding: '1rem 0.4rem 0', borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: '1rem' }}>
++          <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', fontWeight: 600, letterSpacing: '0.05em' }}>
++            Progress Tracker · v2.0
++          </p>
+         </div>
+-        <input 
+-          type="checkbox" 
+-          checked={isDarkMode} 
+-          onChange={(e) => setIsDarkMode(e.target.checked)}
+-          style={{ cursor: 'pointer' }}
+-        />
+       </div>
+     </aside>
+   );
+diff --git a/src/context/AppContext.jsx b/src/context/AppContext.jsx
+index c34793e..3699843 100644
+--- a/src/context/AppContext.jsx
++++ b/src/context/AppContext.jsx
+@@ -5,15 +5,30 @@ const AppContext = createContext();
+ export const AppProvider = ({ children }) => {
+   const [view, setView] = useState('dashboard');
+   const [selectedPeriod, setSelectedPeriod] = useState({ type: 'daily', id: new Date().toISOString().split('T')[0] });
+-  const [isDarkMode, setIsDarkMode] = useState(true);
++  const [isDarkMode, setIsDarkMode] = useState(() => {
++    const saved = localStorage.getItem('tracker_theme');
++    return saved !== null ? JSON.parse(saved) : true;
++  });
+   
+   const [goals, setGoals] = useState(() => {
+     const saved = localStorage.getItem('tracker_goals_multi');
+-    return saved ? JSON.parse(saved) : {
+-      daily: {}, // YYYY-MM-DD -> { goals: [] }
+-      weekly: { 1: { goals: [] }, 2: { goals: [] }, 3: { goals: [] } },
+-      yearly: { 2026: { goals: [] } }
+-    };
++    let data = saved ? JSON.parse(saved) : { daily: {}, weekly: {}, yearly: {} };
++    
++    // Sanitize and ensure structure
++    if (!data.daily) data.daily = {};
++    if (!data.weekly) data.weekly = { 1: { goals: [] }, 2: { goals: [] }, 3: { goals: [] } };
++    if (!data.yearly) data.yearly = { 2026: { goals: [] } };
++    
++    // Ensure all period objects have a goals array
++    Object.keys(data).forEach(type => {
++      Object.keys(data[type]).forEach(id => {
++        if (!data[type][id] || !Array.isArray(data[type][id].goals)) {
++          data[type][id] = { goals: [] };
++        }
++      });
++    });
++    
++    return data;
+   });
+ 
+   const [history, setHistory] = useState(() => {
+@@ -21,6 +36,18 @@ export const AppProvider = ({ children }) => {
+     return saved ? JSON.parse(saved) : [];
+   });
+ 
++  const [habits, setHabits] = useState(() => {
++    const saved = localStorage.getItem('tracker_habits');
++    const parsed = saved ? JSON.parse(saved) : [];
++    // Migrate old habits without category
++    return parsed.map(h => ({ category: 'other', ...h }));
++  });
++
++  useEffect(() => {
++    localStorage.setItem('tracker_theme', JSON.stringify(isDarkMode));
++    document.documentElement.className = isDarkMode ? 'dark' : 'light';
++  }, [isDarkMode]);
++
+   useEffect(() => {
+     localStorage.setItem('tracker_goals_multi', JSON.stringify(goals));
+   }, [goals]);
+@@ -29,6 +56,10 @@ export const AppProvider = ({ children }) => {
+     localStorage.setItem('tracker_history', JSON.stringify(history));
+   }, [history]);
+ 
++  useEffect(() => {
++    localStorage.setItem('tracker_habits', JSON.stringify(habits));
++  }, [habits]);
++
+   const calculateStreak = () => {
+     if (history.length === 0) return 0;
+     const sortedDates = [...new Set(history)].sort().reverse();
+@@ -49,7 +80,7 @@ export const AppProvider = ({ children }) => {
+     return streak;
+   };
+ 
+-  const addGoal = (type, id, text) => {
++  const addGoal = (type, id, text, priority = 'medium', deadline = null) => {
+     setGoals(prev => {
+       const periodData = prev[type][id] || { goals: [] };
+       return {
+@@ -58,7 +89,7 @@ export const AppProvider = ({ children }) => {
+           ...prev[type],
+           [id]: {
+             ...periodData,
+-            goals: [...periodData.goals, { id: Date.now(), text, completed: false, createdAt: new Date().toISOString() }]
++            goals: [...periodData.goals, { id: Date.now(), text, completed: false, createdAt: new Date().toISOString(), priority, deadline }]
+           }
+         }
+       };
+@@ -66,47 +97,113 @@ export const AppProvider = ({ children }) => {
+   };
+ 
+   const toggleGoal = (type, id, goalId) => {
+-    const today = new Date().toISOString().split('T')[0];
+     setGoals(prev => {
+-      const newGoals = {
++      if (!prev[type] || !prev[type][id]) return prev;
++      return {
+         ...prev,
+         [type]: {
+           ...prev[type],
+           [id]: {
+             ...prev[type][id],
+-            goals: prev[type][id].goals.map(g => g.id === goalId ? { ...g, completed: !g.completed, completedAt: !g.completed ? new Date().toISOString() : null } : g)
++            goals: prev[type][id].goals?.map(g => 
++              g.id === goalId ? { ...g, completed: !g.completed, completedAt: !g.completed ? new Date().toISOString() : null } : g
++            ) || []
+           }
+         }
+       };
++    });
++  };
+ 
+-      // Streak logic: check if any goal across all periods is completed today
+-      const anyCompletedToday = Object.values(newGoals).some(periods => 
+-        Object.values(periods).some(p => p.goals.some(g => g.completed && g.completedAt?.startsWith(today)))
+-      );
++  useEffect(() => {
++    const today = new Date().toISOString().split('T')[0];
++    const anyCompletedToday = Object.values(goals).some(periods => 
++      periods && Object.values(periods).some(p => 
++        p?.goals?.some(g => g.completed && g.completedAt?.startsWith(today))
++      )
++    );
+ 
+-      if (anyCompletedToday && !history.includes(today)) {
+-        setHistory(h => [...h, today]);
+-      } else if (!anyCompletedToday && history.includes(today)) {
+-        setHistory(h => h.filter(d => d !== today));
+-      }
++    if (anyCompletedToday && !history.includes(today)) {
++      setHistory(h => [...h, today]);
++    } else if (!anyCompletedToday && history.includes(today)) {
++      setHistory(h => h.filter(d => d !== today));
++    }
++  }, [goals, history]);
+ 
+-      return newGoals;
++  const deleteGoal = (type, id, goalId) => {
++    setGoals(prev => {
++      if (!prev[type] || !prev[type][id]) return prev;
++      return {
++        ...prev,
++        [type]: {
++          ...prev[type],
++          [id]: {
++            ...prev[type][id],
++            goals: prev[type][id].goals?.filter(g => g.id !== goalId) || []
++          }
++        }
++      };
+     });
+   };
+ 
+-  const deleteGoal = (type, id, goalId) => {
+-    setGoals(prev => ({
+-      ...prev,
+-      [type]: {
+-        ...prev[type],
+-        [id]: {
+-          ...prev[type][id],
+-          goals: prev[type][id].goals.filter(g => g.id !== goalId)
+-        }
++  const addHabit = (name, category = 'other') => {
++    setHabits(prev => [...prev, { id: Date.now().toString(), name, category, completedDates: [] }]);
++  };
++
++  const getHabitStreak = (habitId) => {
++    const habit = habits.find(h => h.id === habitId);
++    if (!habit || habit.completedDates.length === 0) return 0;
++    const sorted = [...habit.completedDates].sort().reverse();
++    const todayStr = new Date().toISOString().split('T')[0];
++    const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0];
++    if (sorted[0] !== todayStr && sorted[0] !== yesterdayStr) return 0;
++    let streak = 0;
++    let expected = sorted[0];
++    for (const d of sorted) {
++      if (d === expected) {
++        streak++;
++        expected = new Date(new Date(expected).getTime() - 86400000).toISOString().split('T')[0];
++      } else break;
++    }
++    return streak;
++  };
++
++  const toggleHabitDate = (habitId, dateStr) => {
++    setHabits(prev => prev.map(habit => {
++      if (habit.id === habitId) {
++        const hasDate = habit.completedDates.includes(dateStr);
++        return {
++          ...habit,
++          completedDates: hasDate 
++            ? habit.completedDates.filter(d => d !== dateStr) 
++            : [...habit.completedDates, dateStr]
++        };
+       }
++      return habit;
+     }));
+   };
+ 
++  const deleteHabit = (habitId) => {
++    setHabits(prev => prev.filter(h => h.id !== habitId));
++  };
++
++  const getDatesForWeek = (weekId, forYear = new Date().getFullYear()) => {
++    // weekId is 1-52. Calculate the first Monday of the year or similar.
++    // For simplicity, we'll use a fixed start of year logic or use a helper.
++    const jan1 = new Date(forYear, 0, 1);
++    const daysToFirstMonday = (8 - jan1.getDay()) % 7;
++    const startOfWeek = new Date(forYear, 0, 1 + daysToFirstMonday + (weekId - 1) * 7);
++    
++    const dates = [];
++    for (let i = 0; i < 7; i++) {
++      const d = new Date(startOfWeek);
++      d.setDate(startOfWeek.getDate() + i);
++      if (d.getFullYear() === forYear || d.getFullYear() === forYear + 1) { // allow week overlap
++        dates.push(d.toISOString().split('T')[0]);
++      }
++    }
++    return dates;
++  };
++
+   return (
+     <AppContext.Provider value={{ 
+       view, setView, 
+@@ -114,7 +211,9 @@ export const AppProvider = ({ children }) => {
+       isDarkMode, setIsDarkMode,
+       goals, addGoal, toggleGoal, deleteGoal,
+       streak: calculateStreak(),
+-      history
++      history,
++      habits, addHabit, toggleHabitDate, deleteHabit, getHabitStreak,
++      getDatesForWeek
+     }}>
+       {children}
+     </AppContext.Provider>
+diff --git a/src/index.css b/src/index.css
+index 2c84af0..619ff2a 100644
+--- a/src/index.css
++++ b/src/index.css
+@@ -1,111 +1,308 @@
++@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
++
+ :root {
+-  --text: #6b6375;
+-  --text-h: #08060d;
+-  --bg: #fff;
+-  --border: #e5e4e7;
+-  --code-bg: #f4f3ec;
+-  --accent: #aa3bff;
+-  --accent-bg: rgba(170, 59, 255, 0.1);
+-  --accent-border: rgba(170, 59, 255, 0.5);
+-  --social-bg: rgba(244, 243, 236, 0.5);
+-  --shadow:
+-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+-
+-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+-  --mono: ui-monospace, Consolas, monospace;
+-
+-  font: 18px/145% var(--sans);
+-  letter-spacing: 0.18px;
+-  color-scheme: light dark;
+-  color: var(--text);
+-  background: var(--bg);
+-  font-synthesis: none;
+-  text-rendering: optimizeLegibility;
++  --primary: #6366f1;
++  --primary-deep: #4f46e5;
++  --accent: #f472b6; /* Neon Pink */
++  --accent-cyan: #22d3ee; /* Electric Cyan */
++  --success: #10b981;
++  --glass-bg: rgba(15, 23, 42, 0.45);
++  --glass-border: rgba(255, 255, 255, 0.1);
++  --text-main: #ffffff;
++  --text-dim: rgba(255, 255, 255, 0.6);
++  --bg-dark: #020617;
++}
++
++* {
++  box-sizing: border-box;
+   -webkit-font-smoothing: antialiased;
+-  -moz-osx-font-smoothing: grayscale;
++}
+ 
+-  @media (max-width: 1024px) {
+-    font-size: 16px;
+-  }
++body {
++  margin: 0;
++  font-family: 'Outfit', sans-serif;
++  background: var(--bg-dark);
++  color: var(--text-main);
++  min-height: 100vh;
++  overflow-x: hidden;
++  position: relative;
+ }
+ 
+-@media (prefers-color-scheme: dark) {
+-  :root {
+-    --text: #9ca3af;
+-    --text-h: #f3f4f6;
+-    --bg: #16171d;
+-    --border: #2e303a;
+-    --code-bg: #1f2028;
+-    --accent: #c084fc;
+-    --accent-bg: rgba(192, 132, 252, 0.15);
+-    --accent-border: rgba(192, 132, 252, 0.5);
+-    --social-bg: rgba(47, 48, 58, 0.5);
+-    --shadow:
+-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+-  }
++/* Background Animated Blobs */
++body::before,
++body::after {
++  content: '';
++  position: fixed;
++  width: 600px;
++  height: 600px;
++  border-radius: 50%;
++  filter: blur(120px);
++  z-index: -1;
++  opacity: 0.25;
++}
+ 
+-  #social .button-icon {
+-    filter: invert(1) brightness(2);
+-  }
++body::before {
++  background: radial-gradient(circle, var(--primary), transparent);
++  top: -10%;
++  left: -10%;
++  animation: float 25s infinite alternate;
+ }
+ 
+-body {
++body::after {
++  background: radial-gradient(circle, var(--accent), transparent);
++  bottom: -10%;
++  right: -10%;
++  animation: float 20s infinite alternate-reverse;
++}
++
++@keyframes float {
++  0% { transform: translate(0, 0) scale(1); }
++  100% { transform: translate(100px, 50px) scale(1.1); }
++}
++
++.glass {
++  background: rgba(255, 255, 255, 0.03);
++  backdrop-filter: blur(16px) saturate(180%);
++  -webkit-backdrop-filter: blur(16px) saturate(180%);
++  border: 1px solid rgba(255, 255, 255, 0.08);
++  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
++}
++
++.floating-glass {
++  border-radius: 24px;
++  background: rgba(255, 255, 255, 0.04);
++  border: 1px solid rgba(255, 255, 255, 0.1);
++  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
++}
++
++.hover-glow:hover {
++  box-shadow: 0 0 25px rgba(99, 102, 241, 0.25);
++  transform: translateY(-3px);
++  background: rgba(255, 255, 255, 0.08) !important;
++}
++
++button {
++  cursor: pointer;
++  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
++  font-family: inherit;
++}
++
++button:active {
++  transform: scale(0.96);
++}
++
++::-webkit-scrollbar {
++  width: 8px;
++}
++::-webkit-scrollbar-track {
++  background: transparent;
++}
++::-webkit-scrollbar-thumb {
++  background: rgba(255, 255, 255, 0.1);
++  border-radius: 20px;
++}
++::-webkit-scrollbar-thumb:hover {
++  background: rgba(255, 255, 255, 0.2);
++}
++
++::-webkit-scrollbar {
++  width: 6px;
++}
++::-webkit-scrollbar-track {
++  background: transparent;
++}
++::-webkit-scrollbar-thumb {
++  background: rgba(255, 255, 255, 0.1);
++  border-radius: 10px;
++}
++::-webkit-scrollbar-thumb:hover {
++  background: rgba(255, 255, 255, 0.2);
++}
++
++/* Responsive Layout */
++.app-container {
++  display: flex;
++  height: 100vh;
++  width: 100vw;
++  overflow: hidden;
++  position: relative;
++}
++
++.sidebar-wrapper {
++  height: 100%;
++  width: 320px;
++  flex-shrink: 0;
++  padding: 1.5rem;
++  display: flex;
++  align-items: stretch;
++  flex-direction: column;
++  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
++  z-index: 50;
++  transform: translateX(0);
++  opacity: 1;
++}
++
++.sidebar-wrapper.collapsed-desktop {
++  width: 0;
++  padding: 0;
+   margin: 0;
++  opacity: 0;
++  transform: translateX(-50px);
++  pointer-events: none;
+ }
+ 
+-#root {
+-  width: 1126px;
+-  max-width: 100%;
+-  margin: 0 auto;
+-  text-align: center;
+-  border-inline: 1px solid var(--border);
+-  min-height: 100svh;
++.main-wrapper {
++  flex: 1;
++  padding: 1.5rem 1.5rem 1.5rem 0;
++  position: relative;
++  overflow-y: auto;
+   display: flex;
+   flex-direction: column;
+-  box-sizing: border-box;
+ }
+ 
+-h1,
+-h2 {
+-  font-family: var(--heading);
+-  font-weight: 500;
+-  color: var(--text-h);
++.header-wrapper {
++  min-height: 100px;
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  padding: 2rem 4rem 1rem;
++  z-index: 10;
++  max-width: 1600px;
++  width: 100%;
++  margin: 0 auto;
+ }
+ 
+-h1 {
+-  font-size: 56px;
+-  letter-spacing: -1.68px;
+-  margin: 32px 0;
+-  @media (max-width: 1024px) {
+-    font-size: 36px;
+-    margin: 20px 0;
+-  }
++.header-title-container {
++  display: flex;
++  align-items: center;
+ }
+-h2 {
+-  font-size: 24px;
+-  line-height: 118%;
+-  letter-spacing: -0.24px;
+-  margin: 0 0 8px;
+-  @media (max-width: 1024px) {
+-    font-size: 20px;
+-  }
++
++.content-wrapper {
++  flex: 1;
++  padding: 1rem 4rem 4rem;
++  max-width: 1600px;
++  width: 100%;
++  margin: 0 auto;
+ }
+-p {
+-  margin: 0;
++
++.mobile-menu-btn {
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  background: rgba(255, 255, 255, 0.03);
++  backdrop-filter: blur(10px);
++  border: 1px solid rgba(255, 255, 255, 0.08);
++  color: var(--primary);
++  padding: 0.6rem;
++  cursor: pointer;
++  border-radius: 12px;
++  margin-right: 1.25rem;
++  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
++  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+ }
+ 
+-code,
+-.counter {
+-  font-family: var(--mono);
+-  display: inline-flex;
+-  border-radius: 4px;
+-  color: var(--text-h);
++.mobile-menu-btn:hover {
++  background: rgba(255, 255, 255, 0.08);
++  transform: translateY(-2px);
++  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.2);
++  color: #fff;
+ }
+ 
+-code {
+-  font-size: 15px;
+-  line-height: 135%;
+-  padding: 4px 8px;
+-  background: var(--code-bg);
++.mobile-menu-btn.active {
++  background: rgba(99, 102, 241, 0.15);
++  border-color: rgba(99, 102, 241, 0.3);
++  color: var(--accent-cyan);
+ }
++
++.overlay {
++  display: none;
++  position: fixed;
++  top: 0;
++  left: 0;
++  right: 0;
++  bottom: 0;
++  background: rgba(0,0,0,0.5);
++  backdrop-filter: blur(4px);
++  z-index: 40;
++  opacity: 0;
++  transition: opacity 0.3s ease;
++}
++
++@media (max-width: 1024px) {
++  .app-container {
++    flex-direction: column;
++  }
++  
++  .sidebar-wrapper {
++    position: fixed;
++    top: 0;
++    left: 0;
++    bottom: 0;
++    height: 100vh;
++    background: rgba(2, 6, 23, 0.95);
++    backdrop-filter: blur(20px);
++    transform: translateX(-100%);
++    width: 300px;
++    padding: 1rem;
++    box-shadow: 20px 0 50px rgba(0,0,0,0.5);
++    opacity: 1; /* override desktop hidden state */
++    pointer-events: auto;
++  }
++
++  .sidebar-wrapper.open {
++    transform: translateX(0);
++  }
++
++  .overlay.open {
++    display: block;
++    opacity: 1;
++  }
++
++  .main-wrapper {
++    padding: 0;
++  }
++
++  .header-wrapper {
++    padding: 1.5rem 1.5rem 0.5rem;
++    height: auto;
++  }
++
++  .content-wrapper {
++    padding: 1.5rem;
++  }
++
++  .mobile-menu-btn {
++    display: flex; /* keep it visible */
++  }
++
++  h1.page-title {
++    font-size: 1.8rem !important;
++  }
++}
++
++@media (max-width: 768px) {
++  .header-wrapper {
++    flex-direction: column;
++    align-items: flex-start;
++    gap: 1.5rem;
++  }
++  
++  .header-title-container {
++    display: flex;
++    align-items: center;
++    width: 100%;
++  }
++
++  .header-actions {
++    width: 100%;
++    display: flex;
++    justify-content: space-between;
++  }
++  
++  .header-actions button {
++    flex: 1;
++    text-align: center;
++    justify-content: center;
++  }
++}
++
+diff --git a/src/styles/globals.css b/src/styles/globals.css
+index be89c3d..46dcd97 100644
+--- a/src/styles/globals.css
++++ b/src/styles/globals.css
+@@ -1,80 +1,109 @@
++@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
++
+ :root {
+   --primary: #6366f1;
+-  --primary-hover: #4f46e5;
+-  --bg-dark: #0f172a;
+-  --bg-light: #f8fafc;
+-  --sidebar-dark: rgba(30, 41, 59, 0.7);
+-  --sidebar-light: rgba(255, 255, 255, 0.7);
+-  --card-dark: rgba(30, 41, 59, 0.5);
+-  --card-light: rgba(255, 255, 255, 0.5);
+-  --text-dark: #f1f5f9;
+-  --text-light: #1e293b;
++  --primary-deep: #4f46e5;
++  --accent: #f472b6; /* Neon Pink */
++  --accent-cyan: #22d3ee; /* Electric Cyan */
++  --success: #10b981;
++  --glass-bg: rgba(15, 23, 42, 0.45);
+   --glass-border: rgba(255, 255, 255, 0.1);
+-  --glass-blur: 16px;
+-  --accent-success: #10b981;
+-  --accent-warning: #f59e0b;
+-  --accent-danger: #ef4444;
++  --text-main: #ffffff;
++  --text-dim: rgba(255, 255, 255, 0.6);
++  --bg-dark: #020617;
+ }
+ 
+ * {
+   margin: 0;
+   padding: 0;
+   box-sizing: border-box;
++  -webkit-font-smoothing: antialiased;
+ }
+ 
+ body {
+   font-family: 'Outfit', sans-serif;
+-  -webkit-font-smoothing: antialiased;
+-  -moz-osx-font-smoothing: grayscale;
+-  overflow: hidden;
+-  height: 100vh;
+-  transition: background-color 0.3s ease;
++  background: var(--bg-dark);
++  color: var(--text-main);
++  min-height: 100vh;
++  overflow-x: hidden;
++  position: relative;
++}
++
++/* Background Animated Blobs */
++body::before,
++body::after {
++  content: '';
++  position: fixed;
++  width: 600px;
++  height: 600px;
++  border-radius: 50%;
++  filter: blur(120px);
++  z-index: -1;
++  opacity: 0.25;
++}
++
++body::before {
++  background: radial-gradient(circle, var(--primary), transparent);
++  top: -10%;
++  left: -10%;
++  animation: float 25s infinite alternate;
++}
++
++body::after {
++  background: radial-gradient(circle, var(--accent), transparent);
++  bottom: -10%;
++  right: -10%;
++  animation: float 20s infinite alternate-reverse;
+ }
+ 
+-body.dark {
+-  background-color: var(--bg-dark);
+-  color: var(--text-dark);
+-  background-image: 
+-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+-    radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.05) 0px, transparent 50%);
++@keyframes float {
++  0% { transform: translate(0, 0) scale(1); }
++  100% { transform: translate(100px, 50px) scale(1.1); }
+ }
+ 
+ .glass {
+-  background: var(--card-dark);
+-  backdrop-filter: blur(var(--glass-blur));
+-  -webkit-backdrop-filter: blur(var(--glass-blur));
+-  border: 1px solid var(--glass-border);
++  background: rgba(255, 255, 255, 0.03);
++  backdrop-filter: blur(30px) saturate(180%);
++  -webkit-backdrop-filter: blur(30px) saturate(180%);
++  border: 1px solid rgba(255, 255, 255, 0.08);
++  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
++}
++
++.floating-glass {
++  border-radius: 32px;
++  background: rgba(255, 255, 255, 0.05);
++  border: 1px solid rgba(255, 255, 255, 0.1);
++  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
++}
++
++.hover-glow:hover {
++  box-shadow: 0 0 25px rgba(99, 102, 241, 0.25);
++  transform: translateY(-3px);
++  background: rgba(255, 255, 255, 0.08) !important;
+ }
+ 
+ button {
+   cursor: pointer;
++  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
++  font-family: inherit;
+   border: none;
+   background: none;
+-  font-family: inherit;
+ }
+ 
+-::-webkit-scrollbar {
+-  width: 6px;
++button:active {
++  transform: scale(0.96);
+ }
+ 
++::-webkit-scrollbar {
++  width: 8px;
++}
+ ::-webkit-scrollbar-track {
+   background: transparent;
+ }
+-
+ ::-webkit-scrollbar-thumb {
+   background: rgba(255, 255, 255, 0.1);
+-  border-radius: 10px;
++  border-radius: 20px;
+ }
+-
+ ::-webkit-scrollbar-thumb:hover {
+   background: rgba(255, 255, 255, 0.2);
+ }
+-
+-@keyframes fadeIn {
+-  from { opacity: 0; transform: translateY(10px); }
+-  to { opacity: 1; transform: translateY(0); }
+-}
+-
+-.fade-in {
+-  animation: fadeIn 0.4s ease-out forwards;
+-}

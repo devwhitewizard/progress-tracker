@@ -32,8 +32,9 @@ const CalendarView = () => {
   }
 
   const handleDateClick = (day) => {
-    const d = new Date(year, month, day + 1); // +1 because toISOString might shift due to timezone if not careful
-    const dateString = new Date(year, month, day).toLocaleDateString('en-CA'); // YYYY-MM-DD
+    if (!day) return;
+    const d = new Date(year, month, day);
+    const dateString = d.toLocaleDateString('en-CA'); // YYYY-MM-DD
     setSelectedPeriod({ type: 'daily', id: dateString });
     setView('goals');
   };
@@ -50,25 +51,26 @@ const CalendarView = () => {
 
   return (
     <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="glass"
-      style={{ padding: '2rem', borderRadius: '32px' }}
+      className="glass floating-glass"
+      style={{ padding: '2rem', position: 'relative', overflow: 'hidden' }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.75rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <CalendarIcon size={28} className="text-primary" />
-          {monthName} {year}
+      <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '200px', height: '200px', background: 'var(--primary)', filter: 'blur(80px)', opacity: 0.1 }}></div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3.5rem' }}>
+        <h2 style={{ fontSize: '2.5rem', fontWeight: 1000, display: 'flex', alignItems: 'center', gap: '1rem', letterSpacing: '-0.04em' }}>
+          <CalendarIcon size={36} style={{ color: 'var(--accent-cyan)' }} />
+          {monthName} <span style={{ opacity: 0.3 }}>{year}</span>
         </h2>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button onClick={prevMonth} className="glass-btn" style={{ padding: '0.5rem' }}><ChevronLeft size={20} /></button>
-          <button onClick={nextMonth} className="glass-btn" style={{ padding: '0.5rem' }}><ChevronRight size={20} /></button>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button onClick={prevMonth} className="glass" style={{ padding: '0.8rem', borderRadius: '14px', color: '#fff' }}><ChevronLeft size={24} /></button>
+          <button onClick={nextMonth} className="glass" style={{ padding: '0.8rem', borderRadius: '14px', color: '#fff' }}><ChevronRight size={24} /></button>
         </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1rem' }}>
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-          <div key={d} style={{ textAlign: 'center', fontWeight: 700, color: '#64748b', fontSize: '0.875rem', marginBottom: '0.5rem' }}>{d}</div>
+          <div key={d} style={{ textAlign: 'center', fontWeight: 800, color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem', opacity: 0.8 }}>{d}</div>
         ))}
         
         {days.map((day, i) => {
@@ -82,24 +84,24 @@ const CalendarView = () => {
               disabled={!day}
               style={{
                 aspectRatio: '1',
-                borderRadius: '16px',
-                border: isToday ? '2px solid var(--primary)' : '1px solid var(--glass-border)',
-                background: day ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
+                borderRadius: '20px',
+                border: isToday ? '2px solid var(--accent-cyan)' : '1px solid rgba(255,255,255,0.05)',
+                background: day ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '4px',
+                gap: '8px',
                 cursor: day ? 'pointer' : 'default',
                 position: 'relative',
-                transition: 'all 0.2s ease',
-                transform: day ? 'none' : 'none'
+                transition: 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
+                boxShadow: isToday ? '0 0 30px rgba(34, 211, 238, 0.2)' : 'none'
               }}
-              className={day ? 'calendar-day-hover' : ''}
+              className={day ? 'calendar-day-hover hover-glow' : ''}
             >
-              <span style={{ fontSize: '1.1rem', fontWeight: 600, color: day ? 'inherit' : 'transparent' }}>{day}</span>
-              {status === 'pending' && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#fbbf24' }}></div>}
-              {status === 'completed' && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }}></div>}
+              <span style={{ fontSize: '1.4rem', fontWeight: 900, color: isToday ? '#fff' : (day ? 'rgba(255,255,255,0.8)' : 'transparent'), letterSpacing: '-0.02em' }}>{day}</span>
+              {status === 'pending' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)', boxShadow: '0 0 15px var(--accent)' }}></div>}
+              {status === 'completed' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 15px var(--success)' }}></div>}
             </button>
           );
         })}
