@@ -55,23 +55,23 @@ const CalendarView = () => {
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       className="glass floating-glass"
-      style={{ padding: '2rem', position: 'relative', overflow: 'hidden', maxWidth: '800px', margin: '0 auto' }}
+      style={{ padding: '1.25rem', position: 'relative', overflow: 'hidden', maxWidth: '650px', margin: '0 auto' }}
     >
-      <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '200px', height: '200px', background: 'var(--primary)', filter: 'blur(80px)', opacity: 0.1 }}></div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3.5rem' }}>
-        <h2 style={{ fontSize: '2.5rem', fontWeight: 1000, display: 'flex', alignItems: 'center', gap: '1rem', letterSpacing: '-0.04em' }}>
-          <CalendarIcon size={36} style={{ color: 'var(--accent-cyan)' }} />
+      <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '150px', height: '150px', background: 'var(--primary)', filter: 'blur(80px)', opacity: 0.1 }}></div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.75rem', fontWeight: 1000, display: 'flex', alignItems: 'center', gap: '0.75rem', letterSpacing: '-0.04em' }}>
+          <CalendarIcon size={24} style={{ color: 'var(--accent-cyan)' }} />
           {monthName} <span style={{ opacity: 0.3 }}>{year}</span>
         </h2>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button onClick={prevMonth} className="glass" style={{ padding: '0.8rem', borderRadius: '14px', color: '#fff' }}><ChevronLeft size={24} /></button>
-          <button onClick={nextMonth} className="glass" style={{ padding: '0.8rem', borderRadius: '14px', color: '#fff' }}><ChevronRight size={24} /></button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button onClick={prevMonth} className="glass" style={{ padding: '0.5rem', borderRadius: '10px', color: '#fff' }}><ChevronLeft size={18} /></button>
+          <button onClick={nextMonth} className="glass" style={{ padding: '0.5rem', borderRadius: '10px', color: '#fff' }}><ChevronRight size={18} /></button>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem' }}>
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-          <div key={d} style={{ textAlign: 'center', fontWeight: 800, color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem', opacity: 0.8 }}>{d}</div>
+          <div key={d} style={{ textAlign: 'center', fontWeight: 800, color: 'var(--primary)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem', opacity: 0.8 }}>{d}</div>
         ))}
         
         {days.map((day, i) => {
@@ -85,14 +85,14 @@ const CalendarView = () => {
               disabled={!day}
               style={{
                 aspectRatio: '1',
-                borderRadius: '20px',
+                borderRadius: '12px',
                 border: isToday ? '2px solid var(--accent-cyan)' : '1px solid rgba(255,255,255,0.05)',
                 background: day ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '8px',
+                gap: '4px',
                 cursor: day ? 'pointer' : 'default',
                 position: 'relative',
                 transition: 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
@@ -100,9 +100,9 @@ const CalendarView = () => {
               }}
               className={day ? 'calendar-day-hover hover-glow' : ''}
             >
-              <span style={{ fontSize: '1.4rem', fontWeight: 900, color: isToday ? '#fff' : (day ? 'rgba(255,255,255,0.8)' : 'transparent'), letterSpacing: '-0.02em' }}>{day}</span>
-              {status === 'pending' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)', boxShadow: '0 0 15px var(--accent)' }}></div>}
-              {status === 'completed' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 15px var(--success)' }}></div>}
+              <span style={{ fontSize: '1.1rem', fontWeight: 900, color: isToday ? '#fff' : (day ? 'rgba(255,255,255,0.8)' : 'transparent'), letterSpacing: '-0.02em' }}>{day}</span>
+              {status === 'pending' && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent)', boxShadow: '0 0 10px var(--accent)' }}></div>}
+              {status === 'completed' && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 10px var(--success)' }}></div>}
             </button>
           );
         })}

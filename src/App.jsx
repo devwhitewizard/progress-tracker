@@ -83,15 +83,19 @@ function App() {
       ></div>
 
       <main className={`main-wrapper ${!isSidebarOpen && !isMobileMode ? 'expanded' : ''}`}>
-        <header className="header-wrapper" style={{ padding: 'clamp(1.5rem, 4vw, 2.5rem)  clamp(1.5rem, 4vw, 4rem) 1rem' }}>
-          <div className="header-title-container" style={{ gap: '1rem' }}>
-            <button 
-              className={`mobile-menu-btn ${isSidebarOpen ? 'active' : ''}`} 
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              aria-label="Toggle Menu"
-            >
-              <Menu size={20} />
-            </button>
+        <header className="header-wrapper" style={{ padding: 'clamp(1.5rem, 4vw, 2.5rem)  clamp(1.5rem, 4vw, 4rem) 1rem', position: 'relative' }}>
+          
+          {/* Hamburger — fixed top-left, always visible on scroll */}
+          <button 
+            className={`mobile-menu-btn ${isSidebarOpen ? 'active' : ''}`} 
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            aria-label="Toggle Menu"
+            style={{ position: 'fixed', top: '1rem', left: isSidebarOpen ? '18rem' : '1.5rem', zIndex: 1000, transition: 'left 0.3s ease' }}
+          >
+            <Menu size={20} />
+          </button>
+
+          <div className="header-title-container" style={{ gap: '1rem', paddingTop: '2rem' }}>
             <button
               className="mobile-menu-btn"
               style={{ marginRight: '1rem' }}
