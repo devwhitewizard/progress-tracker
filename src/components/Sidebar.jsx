@@ -7,6 +7,7 @@ import {
   Map as MapIcon, 
   BarChart3, 
   CheckSquare, 
+  Settings,
   X,
   Sun,
   Moon
@@ -22,6 +23,7 @@ const Sidebar = ({ isOpen, onClose, isMobileMode }) => {
     { id: 'calendar', label: 'Calendar', icon: CalendarDays },
     { id: 'master', label: 'Master Plan', icon: MapIcon },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (

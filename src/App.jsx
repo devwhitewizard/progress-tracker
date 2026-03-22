@@ -7,12 +7,19 @@ import MasterPlanView from './components/MasterPlanView';
 import AddGoalModal from './components/AddGoalModal';
 import HabitTracker from './components/HabitTracker';
 import AnalyticsView from './components/AnalyticsView';
+import SettingsView from './components/SettingsView';
+import Login from './components/Login';
+import Register from './components/Register';
 import { useAppContext } from './context/AppContext';
+import { useAuthContext } from './context/AuthContext';
 import { Plus, Sun, Moon, Star, Menu, Search } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
+  const { user, loading } = useAuthContext();
+  const [authView, setAuthView] = useState('login'); // 'login' or 'register'
+  
   const { view, setView, selectedPeriod, setSelectedPeriod } = useAppContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
@@ -38,6 +45,7 @@ function App() {
     if (view === 'calendar') return 'Calendar';
     if (view === 'master') return 'Yearly Goals';
     if (view === 'analytics') return 'Analytics';
+    if (view === 'settings') return 'Settings & Profile';
     if (view === 'goals') {
       const { type, id } = selectedPeriod;
       if (type === 'daily') return id === new Date().toISOString().split('T')[0] ? "Today's Planning" : `Planning for ${id}`;
@@ -46,6 +54,20 @@ function App() {
     }
     return 'Progress Tracker';
   };
+
+  if (loading) {
+    return (
+      <div className="app-container" style={{ justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ color: 'var(--primary)', fontSize: '1.5rem', fontWeight: 800, animation: 'pulse 1.5s infinite' }}>Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return authView === 'login' 
+      ? <Login switchToRegister={() => setAuthView('register')} />
+      : <Register switchToLogin={() => setAuthView('login')} />;
+  }
 
   return (
     <div className="app-container">
@@ -122,6 +144,7 @@ function App() {
               {view === 'calendar' && <CalendarView />}
               {view === 'master' && <MasterPlanView />}
               {view === 'analytics' && <AnalyticsView />}
+              {view === 'settings' && <SettingsView />}
             </motion.div>
           </AnimatePresence>
         </section>
