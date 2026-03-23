@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Plus, Trash2, ChevronLeft, ChevronRight, Flame } from 'lucide-react';
+import { Check, Plus, Trash2, ChevronLeft, ChevronRight, Flame, BarChart3, Activity } from 'lucide-react';
 
 const CATEGORIES = [
   { id: 'health',       label: 'Health',       emoji: '🏃', color: '#10b981' },
-  { id: 'productivity', label: 'Productivity',  emoji: '💼', color: '#6366f1' },
-  { id: 'learning',     label: 'Learning',      emoji: '📚', color: '#f472b6' },
-  { id: 'mindfulness',  label: 'Mindfulness',   emoji: '🧘', color: '#22d3ee' },
-  { id: 'other',        label: 'Other',         emoji: '⚙️', color: '#94a3b8' },
+  { id: 'productivity', label: 'Productivity',  emoji: '💼', color: '#6366F1' },
+  { id: 'learning',     label: 'Learning',      emoji: '📚', color: '#6366F1' },
+  { id: 'mindfulness',  label: 'Mindfulness',   emoji: '🧘', color: '#6366F1' },
+  { id: 'other',        label: 'Other',         emoji: '⚙️', color: '#94A3B8' },
 ];
 
 const getCat = (id) => CATEGORIES.find(c => c.id === id) || CATEGORIES[4];
@@ -34,7 +33,7 @@ const HabitTracker = () => {
   };
 
   const weekDates = getWeekDates(weekOffset);
-  const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  const weekDays = ['M', 'T', 'W', 'W', 'F', 'S', 'S'];
   const todayStr = new Date().toISOString().split('T')[0];
 
   const handleAddHabit = (e) => {
@@ -45,172 +44,149 @@ const HabitTracker = () => {
     }
   };
 
-  const weekLabel = weekOffset === 0 ? 'This Week' : weekOffset === -1 ? 'Last Week' : `${Math.abs(weekOffset)} Weeks Ago`;
+  const weekLabel = weekOffset === 0 ? 'Current Week' : weekOffset === -1 ? 'Last Week' : `${Math.abs(weekOffset)}w Ago`;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
-    >
-      {/* Category Legend */}
-      <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-        {CATEGORIES.map(cat => (
-          <div key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.04)', border: `1px solid ${cat.color}30`, borderRadius: '10px', padding: '0.35rem 0.75rem' }}>
-            <span style={{ fontSize: '0.75rem' }}>{cat.emoji}</span>
-            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: cat.color, letterSpacing: '0.05em' }}>{cat.label}</span>
-          </div>
-        ))}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* Search & Category Filter (Mockup for SaaS feel) */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          {CATEGORIES.map(cat => (
+            <button key={cat.id} className="btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', fontSize: '0.75rem', borderRadius: '6px' }}>
+              <span>{cat.emoji}</span>
+              <span>{cat.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="glass floating-glass" style={{ padding: '2rem', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: '250px', height: '250px', background: 'var(--primary)', filter: 'blur(80px)', opacity: 0.07, pointerEvents: 'none' }} />
-
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '0.25rem' }}>Habit Tracker</h2>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 600, fontSize: '0.9rem' }}>Build streaks, track your daily routines.</p>
+      <div className="saas-card" style={{ padding: '0' }}>
+        {/* Header Section */}
+        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ color: 'var(--primary)' }}><Activity size={20} /></div>
+            <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Habit Matrix</h2>
           </div>
-          {/* Week navigator */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.03)', padding: '0.4rem 0.4rem 0.4rem 0.75rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <button onClick={() => setWeekOffset(p => p - 1)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: '0.4rem', borderRadius: '8px' }} className="hover-glow"><ChevronLeft size={18} /></button>
-            <span style={{ fontWeight: 800, minWidth: '100px', textAlign: 'center', fontSize: '0.85rem', color: 'var(--accent-cyan)' }}>{weekLabel}</span>
-            <button onClick={() => setWeekOffset(p => Math.min(0, p + 1))} disabled={weekOffset === 0} style={{ background: 'transparent', border: 'none', color: weekOffset === 0 ? 'rgba(255,255,255,0.2)' : '#fff', cursor: weekOffset === 0 ? 'default' : 'pointer', padding: '0.4rem', borderRadius: '8px' }} className={weekOffset !== 0 ? 'hover-glow' : ''}><ChevronRight size={18} /></button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-obsidian)', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+            <button onClick={() => setWeekOffset(p => p - 1)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.25rem', borderRadius: '4px' }}><ChevronLeft size={16} /></button>
+            <span style={{ fontWeight: 700, minWidth: '80px', textAlign: 'center', fontSize: '0.75rem', color: '#fff' }}>{weekLabel}</span>
+            <button onClick={() => setWeekOffset(p => Math.min(0, p + 1))} disabled={weekOffset === 0} style={{ background: 'transparent', border: 'none', color: weekOffset === 0 ? 'var(--text-muted)' : 'var(--text-secondary)', cursor: 'pointer', padding: '0.25rem', borderRadius: '4px' }}><ChevronRight size={16} /></button>
           </div>
         </div>
 
-        {/* Table */}
-        <div style={{ overflowX: 'auto', paddingBottom: '0.5rem' }}>
-          <table style={{ width: '100%', minWidth: '640px', borderCollapse: 'separate', borderSpacing: '0 0.6rem' }}>
+        {/* Matrix Table */}
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr>
-                <th style={{ textAlign: 'left', padding: '0.5rem 1rem', color: 'rgba(255,255,255,0.35)', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Habit</th>
+              <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+                <th style={{ textAlign: 'left', padding: '1rem 1.5rem', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid var(--border-color)' }}>Indicator</th>
                 {weekDates.map((date, i) => {
                   const dateStr = date.toISOString().split('T')[0];
                   const isToday = dateStr === todayStr;
                   return (
-                    <th key={i} style={{ textAlign: 'center', padding: '0.5rem', minWidth: '44px', maxWidth: '52px' }}>
+                    <th key={i} style={{ textAlign: 'center', padding: '1rem 0.5rem', borderBottom: '1px solid var(--border-color)', borderLeft: '1px solid var(--border-color)' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                        <span style={{ color: isToday ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.35)', fontWeight: 900, fontSize: '0.85rem' }}>{weekDays[i]}</span>
-                        <span style={{ color: 'rgba(255,255,255,0.25)', fontWeight: 600, fontSize: '0.65rem' }}>{date.getDate()}</span>
+                        <span style={{ color: isToday ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 700, fontSize: '0.75rem' }}>{weekDays[i]}</span>
+                        <span style={{ color: isToday ? '#fff' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.65rem' }}>{date.getDate()}</span>
                       </div>
                     </th>
                   );
                 })}
-                <th style={{ width: '60px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em' }}>🔥</th>
-                <th style={{ width: '44px' }} />
+                <th style={{ width: '80px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 600, borderBottom: '1px solid var(--border-color)', borderLeft: '1px solid var(--border-color)' }}>STREAK</th>
+                <th style={{ width: '60px', borderBottom: '1px solid var(--border-color)' }} />
               </tr>
             </thead>
             <tbody>
-              <AnimatePresence>
-                {habits.map((habit) => {
-                  const cat = getCat(habit.category);
-                  const habitStreak = getHabitStreak(habit.id);
-                  return (
-                    <motion.tr
-                      key={habit.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 10 }}
-                      transition={{ duration: 0.25 }}
-                      style={{ background: 'rgba(255,255,255,0.025)' }}
-                    >
-                      <td style={{ padding: '1rem', borderRadius: '14px 0 0 14px', borderTop: `1px solid rgba(255,255,255,0.05)`, borderBottom: `1px solid rgba(255,255,255,0.05)`, borderLeft: `3px solid ${cat.color}` }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                          <span style={{ fontSize: '0.9rem' }}>{cat.emoji}</span>
-                          <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#fff' }}>{habit.name}</span>
-                        </div>
-                      </td>
-                      {weekDates.map((date, i) => {
-                        const dateStr = date.toISOString().split('T')[0];
-                        const isCompleted = habit.completedDates.includes(dateStr);
-                        const isFuture = date > new Date() && dateStr !== todayStr;
-                        return (
-                          <td key={i} style={{ padding: '0.75rem 0', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                            <button
-                              disabled={isFuture && !isCompleted}
-                              onClick={() => toggleHabitDate(habit.id, dateStr)}
-                              style={{
-                                width: '32px', height: '32px', borderRadius: '10px',
-                                border: isCompleted ? 'none' : '2px dashed rgba(255,255,255,0.13)',
-                                background: isCompleted ? `linear-gradient(135deg, ${cat.color}, ${cat.color}bb)` : 'transparent',
-                                color: '#fff', display: 'inline-flex', justifyContent: 'center', alignItems: 'center',
-                                cursor: (isFuture && !isCompleted) ? 'not-allowed' : 'pointer',
-                                opacity: (isFuture && !isCompleted) ? 0.25 : 1,
-                                boxShadow: isCompleted ? `0 4px 10px ${cat.color}55` : 'none',
-                                transition: 'all 0.2s'
-                              }}
-                              title={dateStr}
-                            >
-                              {isCompleted && <Check size={16} strokeWidth={3} />}
-                            </button>
-                          </td>
-                        );
-                      })}
-                      {/* Streak badge */}
-                      <td style={{ textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                        {habitStreak > 0 ? (
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '8px', padding: '3px 7px' }}>
-                            <Flame size={12} color="#f97316" />
-                            <span style={{ fontSize: '0.75rem', fontWeight: 900, color: '#f97316' }}>{habitStreak}</span>
-                          </div>
-                        ) : (
-                          <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: '0.75rem' }}>—</span>
-                        )}
-                      </td>
-                      <td style={{ padding: '0.75rem 0.5rem', borderRadius: '0 14px 14px 0', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                        <button
-                          onClick={() => deleteHabit(habit.id)}
-                          style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.18)', cursor: 'pointer', padding: '0.4rem', borderRadius: '8px', transition: 'all 0.2s' }}
-                          onMouseOver={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }}
-                          onMouseOut={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.18)'; e.currentTarget.style.background = 'transparent'; }}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </motion.tr>
-                  );
-                })}
-              </AnimatePresence>
+              {habits.map((habit) => {
+                const cat = getCat(habit.category);
+                const habitStreak = getHabitStreak(habit.id);
+                return (
+                  <tr key={habit.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '1.25rem 1.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span style={{ fontSize: '1rem' }}>{cat.emoji}</span>
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#fff' }}>{habit.name}</span>
+                      </div>
+                    </td>
+                    {weekDates.map((date, i) => {
+                      const dateStr = date.toISOString().split('T')[0];
+                      const isCompleted = habit.completedDates.includes(dateStr);
+                      const isFuture = date > new Date() && dateStr !== todayStr;
+                      return (
+                        <td key={i} style={{ textAlign: 'center', padding: '0', borderLeft: '1px solid var(--border-color)' }}>
+                          <button
+                            disabled={isFuture && !isCompleted}
+                            onClick={() => toggleHabitDate(habit.id, dateStr)}
+                            style={{
+                              width: '100%', height: '100%', minHeight: '64px',
+                              background: isCompleted ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
+                              color: 'var(--primary)', border: 'none', cursor: (isFuture && !isCompleted) ? 'not-allowed' : 'pointer',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              transition: 'all 0.1s ease',
+                              opacity: (isFuture && !isCompleted) ? 0.2 : 1
+                            }}
+                          >
+                            {isCompleted && <Check size={18} strokeWidth={3} />}
+                          </button>
+                        </td>
+                      );
+                    })}
+                    
+                    <td style={{ textAlign: 'center', borderLeft: '1px solid var(--border-color)' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: habitStreak > 0 ? 'var(--primary)' : 'var(--text-muted)' }}>
+                        {habitStreak > 0 ? `${habitStreak}d` : '—'}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'center', padding: '0 0.5rem' }}>
+                      <button
+                        onClick={() => deleteHabit(habit.id)}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.5rem', borderRadius: '4px' }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           {habits.length === 0 && (
-            <div style={{ padding: '3rem', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontWeight: 600 }}>
-              No habits yet. Add your first habit below!
+            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+              No active habits. Create one below to begin tracking.
             </div>
           )}
         </div>
 
-        {/* Add form */}
-        <form onSubmit={handleAddHabit} style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', background: 'rgba(0,0,0,0.2)', padding: '0.75rem 1rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+        {/* Input Nexus */}
+        <form onSubmit={handleAddHabit} style={{ padding: '1.25rem', background: 'rgba(255,255,255,0.01)', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '1rem' }}>
           <select
             value={newHabitCategory}
             onChange={e => setNewHabitCategory(e.target.value)}
-            style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#fff', fontSize: '0.9rem', padding: '0.5rem 0.75rem', outline: 'none', cursor: 'pointer', fontWeight: 700, fontFamily: 'inherit' }}
+            style={{ background: 'var(--bg-obsidian)', border: '1px solid var(--border-color)', borderRadius: '6px', color: '#fff', fontSize: '0.85rem', padding: '0.5rem', outline: 'none', cursor: 'pointer', fontWeight: 600 }}
           >
             {CATEGORIES.map(c => (
-              <option key={c.id} value={c.id} style={{ background: '#020617' }}>{c.emoji} {c.label}</option>
+              <option key={c.id} value={c.id} style={{ background: 'var(--bg-card)' }}>{c.emoji} {c.label}</option>
             ))}
           </select>
           <input
             type="text"
-            placeholder="New habit name…"
+            placeholder="Log new performance metric..."
             value={newHabitName}
             onChange={e => setNewHabitName(e.target.value)}
-            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '0.95rem', fontWeight: 600, padding: '0.5rem' }}
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '0.9rem', fontWeight: 500 }}
           />
           <button
             type="submit"
             disabled={!newHabitName.trim()}
-            style={{ background: newHabitName.trim() ? '#fff' : 'rgba(255,255,255,0.08)', color: newHabitName.trim() ? '#000' : 'rgba(255,255,255,0.3)', padding: '0.6rem 1.25rem', borderRadius: '10px', border: 'none', fontWeight: 800, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: newHabitName.trim() ? 'pointer' : 'default', transition: 'all 0.3s' }}
+            className="btn-primary"
+            style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}
           >
-            <Plus size={16} strokeWidth={3} /> Add
+            <Plus size={16} /> Initialize
           </button>
         </form>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

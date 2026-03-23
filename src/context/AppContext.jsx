@@ -13,6 +13,8 @@ export const AppProvider = ({ children }) => {
   const [goals, setGoals] = useState({ daily: {}, weekly: { 1: { goals: [] }, 2: { goals: [] }, 3: { goals: [] } }, yearly: { 2026: { goals: [] } } });
   const [history, setHistory] = useState([]);
   const [habits, setHabits] = useState([]);
+  const [briefing, setBriefing] = useState(null);
+  const [shields, setShields] = useState(0);
   
   const initialLoadDone = useRef(false);
 
@@ -92,18 +94,32 @@ export const AppProvider = ({ children }) => {
     
     let streak = 0;
     let expectedDate = today;
-    if (sortedDates[0] !== today && sortedDates[0] !== yesterday) return 0;
-    if (sortedDates[0] === yesterday) expectedDate = yesterday;
+    
+    // If today is missed but we have a shield, we can treat "yesterday" as the start
+    let usedShield = false;
+    if (sortedDates[0] !== today && sortedDates[0] !== yesterday) {
+      if (shields > 0) {
+        usedShield = true;
+        expectedDate = yesterday;
+      } else {
+        return 0;
+      }
+    } else if (sortedDates[0] === yesterday) {
+      expectedDate = yesterday;
+    }
 
     for (let i = 0; i < sortedDates.length; i++) {
       if (sortedDates[i] === expectedDate) {
         streak++;
         expectedDate = new Date(new Date(expectedDate).getTime() - 86400000).toISOString().split('T')[0];
-      } else break;
+      } else {
+        // If there's a gap between records, check if a shield can bridge it
+        // (Simplified for now: shield just allows 1 day grace at the very front)
+        break;
+      }
     }
     return streak;
   };
-
   const addGoal = (type, id, text, priority = 'medium', deadline = null) => {
     setGoals(prev => {
       const periodData = prev[type][id] || { goals: [] };
@@ -153,6 +169,18 @@ export const AppProvider = ({ children }) => {
       setHistory(h => h.filter(d => d !== today));
     }
   }, [goals, history]);
+
+  // Shield Earning Logic
+  useEffect(() => {
+    if (!initialLoadDone.current) return;
+    const totalDone = Object.values(goals).reduce((acc, periods) => 
+      acc + (periods ? Object.values(periods).reduce((a, p) => a + (p?.goals?.filter(g => g.completed).length || 0), 0) : 0), 0
+    );
+    // Earn 1 shield for every 20 completed goals
+    const earnedShields = Math.floor(totalDone / 20);
+    // Update state only if it changed to avoid unnecessary re-renders
+    setShields(prev => prev !== earnedShields ? earnedShields : prev);
+  }, [goals]);
 
   const deleteGoal = (type, id, goalId) => {
     setGoals(prev => {
@@ -227,6 +255,24 @@ export const AppProvider = ({ children }) => {
     return dates;
   };
 
+  const fetchBriefing = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/ai/briefing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userData: { goals, habits, streak: calculateStreak(), history }
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setBriefing(data);
+      }
+    } catch (err) {
+      console.error("Briefing Fetch Error:", err);
+    }
+  };
+
   return (
     <AppContext.Provider value={{ 
       view, setView, 
@@ -236,7 +282,9 @@ export const AppProvider = ({ children }) => {
       streak: calculateStreak(),
       history,
       habits, addHabit, toggleHabitDate, deleteHabit, getHabitStreak,
-      getDatesForWeek
+      getDatesForWeek,
+      briefing, fetchBriefing,
+      shields, setShields
     }}>
       {children}
     </AppContext.Provider>

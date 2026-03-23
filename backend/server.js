@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
 import authRoutes from './routes/auth.js';
 import dataRoutes from './routes/data.js';
+import aiRoutes from './routes/ai.js';
+import { initNotificationScheduler } from './services/notificationService.js';
 import sequelize from './config/db.js';
 
 import './models/User.js';
@@ -19,6 +21,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/data', dataRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Sync and connect to MySQL using sequelize
 sequelize.sync({ alter: true })
@@ -39,6 +42,7 @@ sequelize.sync({ alter: true })
         console.log('Emails will NOT send. Check EMAIL_USER and EMAIL_PASS in .env\n');
       } else {
         console.log(`✅ Gmail SMTP ready! Emails will be sent from: ${process.env.EMAIL_USER}`);
+        initNotificationScheduler();
       }
     });
 

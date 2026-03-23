@@ -8,11 +8,12 @@ import AddGoalModal from './components/AddGoalModal';
 import HabitTracker from './components/HabitTracker';
 import AnalyticsView from './components/AnalyticsView';
 import SettingsView from './components/SettingsView';
+import CommandPalette from './components/CommandPalette';
 import Login from './components/Login';
 import Register from './components/Register';
 import { useAppContext } from './context/AppContext';
 import { useAuthContext } from './context/AuthContext';
-import { Plus, Sun, Moon, Star, Menu, Search } from 'lucide-react';
+import { Plus, Sun, Moon, Star, Menu, Search, Command } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -20,10 +21,22 @@ function App() {
   const { user, loading } = useAuthContext();
   const [authView, setAuthView] = useState('login'); // 'login' or 'register'
   
-  const { view, setView, selectedPeriod, setSelectedPeriod } = useAppContext();
+  const { view, setView, selectedPeriod, setSelectedPeriod, isDarkMode, setIsDarkMode } = useAppContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
   const [isMobileMode, setIsMobileMode] = useState(window.innerWidth <= 1024);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -70,7 +83,7 @@ function App() {
   }
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${isDarkMode ? 'dark' : 'light'}`} style={{ backgroundColor: 'var(--bg-obsidian)', minHeight: '100vh', transition: 'background-color 0.3s' }}>
       <Sidebar 
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
@@ -83,64 +96,63 @@ function App() {
       ></div>
 
       <main className={`main-wrapper ${!isSidebarOpen && !isMobileMode ? 'expanded' : ''}`}>
-        <header className="header-wrapper" style={{ padding: 'clamp(1.5rem, 4vw, 2.5rem)  clamp(1.5rem, 4vw, 4rem) 1rem', position: 'relative' }}>
+        <header className="header-wrapper" style={{ padding: '2rem 3rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           
-          {/* Hamburger — fixed top-left, always visible on scroll */}
           <button 
             className={`mobile-menu-btn ${isSidebarOpen ? 'active' : ''}`} 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             aria-label="Toggle Menu"
-            style={{ position: 'fixed', top: '1rem', left: isSidebarOpen ? '18rem' : '1.5rem', zIndex: 1000, transition: 'left 0.3s ease' }}
+            style={{ position: 'fixed', top: '1.25rem', left: isSidebarOpen ? '18rem' : '1.5rem', zIndex: 1000, transition: 'left 0.3s ease', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.5rem', color: '#fff' }}
           >
             <Menu size={20} />
           </button>
 
-          <div className="header-title-container" style={{ gap: '1rem', paddingTop: '2rem' }}>
-            <button
-              className="mobile-menu-btn"
-              style={{ marginRight: '1rem' }}
-              aria-label="Search"
-            >
-              <Search size={18} />
-            </button>
-            <div>
-              <h1 className="page-title" style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-0.04em', margin: 0, background: 'linear-gradient(to right, #fff, rgba(255,255,255,0.4))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                {getTitle()}
-              </h1>
-              <p style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 700, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '0.25rem' }}>
-                Progress Tracker
-              </p>
-            </div>
+          <div className="header-title-container">
+            <h1 className="page-title" style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff', margin: 0 }}>
+              {getTitle()}
+            </h1>
+            <p style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.2rem' }}>
+              Enterprise Productivity
+            </p>
           </div>
           
-          <div className="header-actions" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+          <div className="header-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <button 
+              onClick={() => setIsCommandPaletteOpen(true)}
+              style={{ padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem' }}
+              title="Search (Ctrl+K)"
+            >
+              <Search size={18} />
+              <div style={{ display: 'flex', gap: '2px', alignItems: 'center', opacity: 0.5, fontSize: '0.7rem' }}>
+                <Command size={10} /> K
+              </div>
+            </button>
+
+            <button 
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              style={{ padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', color: '#fff', cursor: 'pointer' }}
+            >
+              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+
             <button 
               onClick={() => setIsModalOpen(true)}
-              style={{
-                background: 'linear-gradient(135deg, var(--primary), var(--primary-deep))',
-                color: '#fff',
-                padding: '1.1rem 2.25rem',
-                borderRadius: '18px',
-                fontWeight: 800,
-                fontSize: '1rem',
-                border: 'none',
-                boxShadow: '0 10px 25px rgba(99, 102, 241, 0.4)'
-              }}
-              className="hover-glow"
+              className="btn-primary"
+              style={{ padding: '0.75rem 1.5rem', borderRadius: '8px' }}
             >
-              + Create New Goal
+              <Plus size={18} /> Create New Goal
             </button>
           </div>
         </header>
 
-        <section className="content-wrapper">
+        <section className="content-wrapper" style={{ padding: '2.5rem 3rem' }}>
           <AnimatePresence mode="wait">
             <motion.div
               key={view + (selectedPeriod.id || '')}
-              initial={{ opacity: 0, y: 30, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -30, scale: 0.98 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
             >
               {view === 'dashboard' && <Dashboard setView={setView} setSelectedPeriod={setSelectedPeriod} />}
               {view === 'habits' && <HabitTracker />}
@@ -155,6 +167,7 @@ function App() {
       </main>
 
       <AddGoalModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
     </div>
   );
 }

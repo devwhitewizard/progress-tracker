@@ -9,12 +9,12 @@ import {
   CheckSquare, 
   Settings,
   X,
-  Sun,
-  Moon
+  User
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Sidebar = ({ isOpen, onClose, isMobileMode }) => {
-  const { view, setView, isDarkMode, setIsDarkMode } = useAppContext();
+  const { view, setView } = useAppContext();
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -27,37 +27,52 @@ const Sidebar = ({ isOpen, onClose, isMobileMode }) => {
   ];
 
   return (
-    <>
-      <aside className={`sidebar-wrapper glass ${isOpen ? 'open' : 'collapsed-desktop'} ${isMobileMode ? '' : 'desktop-view'}`}>
-        <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+    <aside 
+        className={`sidebar-wrapper ${isOpen ? 'open' : 'collapsed-desktop'} ${isMobileMode ? '' : 'desktop-view'}`} 
+        style={{ 
+          background: 'var(--bg-card)', 
+          borderRight: '1px solid var(--border-color)', 
+          zIndex: 1001,
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
+        <div className="sidebar-header" style={{ padding: '2rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
             <div style={{ 
-              width: '40px', 
-              height: '40px', 
-              borderRadius: '12px', 
-              background: 'linear-gradient(135deg, var(--primary), var(--accent))',
+              width: '32px', 
+              height: '32px', 
+              borderRadius: '6px', 
+              background: 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#fff',
-              fontWeight: '900',
-              fontSize: '1.2rem',
-              boxShadow: '0 8px 16px rgba(99, 102, 241, 0.3)'
+              fontWeight: '800',
+              fontSize: '1rem'
             }}>
-              PT
+              P
             </div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', background: 'linear-gradient(to right, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <h2 style={{ 
+              fontSize: '1.25rem', 
+              fontWeight: 800, 
+              margin: 0, 
+              color: '#fff',
+              letterSpacing: '-0.02em',
+              fontFamily: 'Inter'
+            }}>
               Progress
             </h2>
           </div>
           {isMobileMode && (
-            <button onClick={onClose} style={{ color: 'var(--text-dim)', padding: '0.5rem' }}>
+            <button onClick={onClose} style={{ color: 'var(--text-secondary)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
               <X size={20} />
             </button>
           )}
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+        <nav style={{ padding: '0.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0 0.5rem 0.5rem' }}>Management</p>
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = view === item.id;
@@ -71,60 +86,44 @@ const Sidebar = ({ isOpen, onClose, isMobileMode }) => {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '1rem',
-                  padding: '1rem 1.25rem',
-                  borderRadius: '16px',
-                  background: isActive ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
-                  color: isActive ? '#fff' : 'var(--text-dim)',
-                  border: `1px solid ${isActive ? 'rgba(99, 102, 241, 0.3)' : 'transparent'}`,
-                  transition: 'all 0.3s ease',
-                  fontWeight: isActive ? 700 : 500,
+                  gap: '0.75rem',
+                  padding: '0.7rem 0.8rem',
+                  borderRadius: 'var(--radius-md)',
+                  background: isActive ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+                  color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                  border: 'none',
+                  transition: 'all 0.15s ease',
+                  fontWeight: isActive ? 600 : 500,
                   width: '100%',
-                  textAlign: 'left'
-                }}
-                className={isActive ? 'sidebar-item active hover-glow' : 'sidebar-item'}
-                onMouseEnter={(e) => {
-                  if (!isActive) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                  e.currentTarget.style.color = '#fff';
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = 'var(--text-dim)';
-                  }
+                  textAlign: 'left',
+                  cursor: 'pointer'
                 }}
               >
-                <Icon size={20} style={{ color: isActive ? 'var(--primary)' : 'inherit' }} />
-                <span>{item.label}</span>
+                <Icon size={18} />
+                <span style={{ fontSize: '0.9rem' }}>{item.label}</span>
+                {isActive && (
+                  <motion.div 
+                    layoutId="sidebar-active-indicator"
+                    style={{ marginLeft: 'auto', width: '4px', height: '4px', borderRadius: '50%', background: 'var(--primary)' }}
+                  />
+                )}
               </button>
             )
           })}
         </nav>
 
-        <div className="sidebar-footer" style={{ marginTop: 'auto', paddingTop: '2rem', borderTop: '1px solid var(--glass-border)' }}>
-          <button 
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.75rem',
-              width: '100%',
-              padding: '1rem',
-              borderRadius: '16px',
-              background: 'rgba(255,255,255,0.05)',
-              color: 'var(--text-main)',
-              fontWeight: 600,
-              border: '1px solid var(--glass-border)'
-            }}
-            className="hover-glow"
-          >
-            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-            <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
-          </button>
+        <div className="sidebar-footer" style={{ padding: '1.5rem', borderTop: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--bg-obsidian)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <User size={18} color="var(--text-secondary)" />
+            </div>
+            <div style={{ overflow: 'hidden' }}>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Account Settings</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Member</div>
+            </div>
+          </div>
         </div>
-      </aside>
-    </>
+    </aside>
   );
 };
 
