@@ -9,7 +9,8 @@ import {
   CheckSquare, 
   Settings,
   X,
-  User
+  User,
+  Sparkles
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -22,6 +23,7 @@ const Sidebar = ({ isOpen, onClose, isMobileMode }) => {
     { id: 'goals', label: 'Goals', icon: Target },
     { id: 'calendar', label: 'Calendar', icon: CalendarDays },
     { id: 'master', label: 'Master Plan', icon: MapIcon },
+    { id: 'roadmap', label: 'Strategic Roadmap', icon: Sparkles },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];

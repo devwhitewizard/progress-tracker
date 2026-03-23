@@ -8,9 +8,10 @@ import AddGoalModal from './components/AddGoalModal';
 import HabitTracker from './components/HabitTracker';
 import AnalyticsView from './components/AnalyticsView';
 import SettingsView from './components/SettingsView';
-import CommandPalette from './components/CommandPalette';
 import Login from './components/Login';
 import Register from './components/Register';
+import StrategicRoadmap from './components/StrategicRoadmap';
+import CommandPalette from './components/CommandPalette';
 import { useAppContext } from './context/AppContext';
 import { useAuthContext } from './context/AuthContext';
 import { Plus, Sun, Moon, Star, Menu, Search, Command } from 'lucide-react';
@@ -65,6 +66,7 @@ function App() {
       if (type === 'weekly') return `Week ${id} Planning`;
       if (type === 'yearly') return `${id} Vision`;
     }
+    if (view === 'roadmap') return 'Strategic Roadmap';
     return 'Progress Tracker';
   };
 
@@ -161,6 +163,7 @@ function App() {
               {view === 'master' && <MasterPlanView />}
               {view === 'analytics' && <AnalyticsView />}
               {view === 'settings' && <SettingsView />}
+              {view === 'roadmap' && <StrategicRoadmap />}
             </motion.div>
           </AnimatePresence>
         </section>

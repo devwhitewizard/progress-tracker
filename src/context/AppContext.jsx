@@ -120,7 +120,7 @@ export const AppProvider = ({ children }) => {
     }
     return streak;
   };
-  const addGoal = (type, id, text, priority = 'medium', deadline = null) => {
+  const addGoal = (type, id, text, priority = 'medium', deadline = null, subtasks = []) => {
     setGoals(prev => {
       const periodData = prev[type][id] || { goals: [] };
       return {
@@ -129,7 +129,7 @@ export const AppProvider = ({ children }) => {
           ...prev[type],
           [id]: {
             ...periodData,
-            goals: [...periodData.goals, { id: Date.now(), text, completed: false, createdAt: new Date().toISOString(), priority, deadline }]
+            goals: [...periodData.goals, { id: Date.now(), text, completed: false, createdAt: new Date().toISOString(), priority, deadline, subtasks }]
           }
         }
       };
@@ -273,12 +273,28 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const updateGoal = (type, id, goalId, updatedGoal) => {
+    setGoals(prev => {
+      if (!prev[type] || !prev[type][id]) return prev;
+      return {
+        ...prev,
+        [type]: {
+          ...prev[type],
+          [id]: {
+            ...prev[type][id],
+            goals: prev[type][id].goals.map(g => g.id === goalId ? updatedGoal : g)
+          }
+        }
+      };
+    });
+  };
+
   return (
     <AppContext.Provider value={{ 
       view, setView, 
       selectedPeriod, setSelectedPeriod,
       isDarkMode, setIsDarkMode,
-      goals, addGoal, toggleGoal, deleteGoal,
+      goals, addGoal, toggleGoal, deleteGoal, updateGoal,
       streak: calculateStreak(),
       history,
       habits, addHabit, toggleHabitDate, deleteHabit, getHabitStreak,

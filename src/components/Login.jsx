@@ -114,7 +114,7 @@ const Login = ({ switchToRegister }) => {
               <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div>
                   <label style={labelStyle}>Email</label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} placeholder="you@example.com" />
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} placeholder="you@gmail.com" />
                 </div>
                 <div>
                   <label style={labelStyle}>Password</label>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import { motion } from 'framer-motion';
-import { Flame, Trophy, ArrowRight, Zap, TrendingUp, Target as TargetIcon } from 'lucide-react';
+import { Flame, Trophy, ArrowRight, Zap, TrendingUp, Target as TargetIcon, Shield } from 'lucide-react';
 
 // Progress Ring for Minimalist Look
 const ProgressRing = ({ percentage, size = 120, strokeWidth = 8, label }) => {
