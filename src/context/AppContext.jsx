@@ -15,12 +15,16 @@ export const AppProvider = ({ children }) => {
   const [habits, setHabits] = useState([]);
   const [briefing, setBriefing] = useState(null);
   const [shields, setShields] = useState(0);
+  const [groups, setGroups] = useState([
+    { id: '1', name: 'Elite Performance', membersCount: 12, progress: 75, recentActivity: 'John completed a 5-day streak' },
+    { id: '2', name: 'Strategic Builders', membersCount: 8, progress: 40, recentActivity: 'New goal added: Project X' }
+  ]);
   
   const initialLoadDone = useRef(false);
 
-  // Fetch data from backend on token change
+  // Load data from localStorage on token change
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = () => {
       if (!token) {
         // Reset to default empty state if not logged in
         setIsDarkMode(true);
@@ -32,11 +36,9 @@ export const AppProvider = ({ children }) => {
       }
       
       try {
-        const res = await fetch('http://localhost:5000/api/data', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
+        const savedData = localStorage.getItem('tracker_app_data');
+        if (savedData) {
+          const data = JSON.parse(savedData);
           if (data.isDarkMode !== undefined) setIsDarkMode(data.isDarkMode);
           if (data.goals) {
             // Guarantee structure sanity
@@ -47,9 +49,10 @@ export const AppProvider = ({ children }) => {
           }
           if (data.history) setHistory(data.history);
           if (data.habits) setHabits(data.habits);
+          if (data.groups) setGroups(data.groups);
         }
       } catch (error) {
-        console.error('Failed to load user data:', error);
+        console.error('Failed to load user data from localStorage:', error);
       } finally {
         setTimeout(() => { initialLoadDone.current = true; }, 100);
       }
@@ -58,22 +61,16 @@ export const AppProvider = ({ children }) => {
     fetchData();
   }, [token]);
 
-  // Sync data to backend
+  // Sync data to localStorage
   useEffect(() => {
     if (!token || !initialLoadDone.current) return;
     
-    const syncData = async () => {
+    const syncData = () => {
       try {
-        await fetch('http://localhost:5000/api/data', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}` 
-          },
-          body: JSON.stringify({ goals, habits, history, isDarkMode })
-        });
+        const dataToSave = { goals, habits, history, isDarkMode, groups };
+        localStorage.setItem('tracker_app_data', JSON.stringify(dataToSave));
       } catch (error) {
-        console.error('Failed to sync data:', error);
+        console.error('Failed to sync data to localStorage:', error);
       }
     };
 
@@ -238,6 +235,11 @@ export const AppProvider = ({ children }) => {
   const deleteHabit = (habitId) => {
     setHabits(prev => prev.filter(h => h.id !== habitId));
   };
+  
+  const addGroup = (name) => {
+    const newGroup = { id: Date.now().toString(), name, membersCount: 1, progress: 0, recentActivity: 'Group created' };
+    setGroups(prev => [...prev, newGroup]);
+  };
 
   const getDatesForWeek = (weekId, forYear = new Date().getFullYear()) => {
     const jan1 = new Date(forYear, 0, 1);
@@ -256,21 +258,12 @@ export const AppProvider = ({ children }) => {
   };
 
   const fetchBriefing = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/ai/briefing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userData: { goals, habits, streak: calculateStreak(), history }
-        })
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setBriefing(data);
-      }
-    } catch (err) {
-      console.error("Briefing Fetch Error:", err);
-    }
+    // Simulate AI briefing locally
+    setBriefing({
+      summary: "Welcome to your offline workspace! You're currently in Guest Mode, so all your data is saved locally in this browser.",
+      focus: "Focus on completing your daily goals to build momentum.",
+      motivation: "Consistent small wins lead to massive results. Keep going!"
+    });
   };
 
   const updateGoal = (type, id, goalId, updatedGoal) => {
@@ -300,7 +293,8 @@ export const AppProvider = ({ children }) => {
       habits, addHabit, toggleHabitDate, deleteHabit, getHabitStreak,
       getDatesForWeek,
       briefing, fetchBriefing,
-      shields, setShields
+      shields, setShields,
+      groups, addGroup
     }}>
       {children}
     </AppContext.Provider>

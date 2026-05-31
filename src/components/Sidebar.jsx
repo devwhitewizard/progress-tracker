@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useAuthContext } from '../context/AuthContext';
 import { 
   LayoutDashboard, 
   Target, 
@@ -10,12 +11,15 @@ import {
   Settings,
   X,
   User,
-  Sparkles
+  Sparkles,
+  Users,
+  LogOut
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Sidebar = ({ isOpen, onClose, isMobileMode }) => {
   const { view, setView } = useAppContext();
+  const { logout } = useAuthContext();
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -24,6 +28,7 @@ const Sidebar = ({ isOpen, onClose, isMobileMode }) => {
     { id: 'calendar', label: 'Calendar', icon: CalendarDays },
     { id: 'master', label: 'Master Plan', icon: MapIcon },
     { id: 'roadmap', label: 'Strategic Roadmap', icon: Sparkles },
+    { id: 'groups', label: 'Groups', icon: Users },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -123,6 +128,13 @@ const Sidebar = ({ isOpen, onClose, isMobileMode }) => {
               <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Account Settings</div>
               <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Member</div>
             </div>
+            <button 
+              onClick={logout}
+              style={{ marginLeft: 'auto', color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+              title="Logout"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         </div>
     </aside>

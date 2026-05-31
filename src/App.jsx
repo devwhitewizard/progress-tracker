@@ -10,6 +10,8 @@ import AnalyticsView from './components/AnalyticsView';
 import SettingsView from './components/SettingsView';
 import Login from './components/Login';
 import Register from './components/Register';
+import LandingPage from './components/LandingPage';
+import GroupsView from './components/GroupsView';
 import StrategicRoadmap from './components/StrategicRoadmap';
 import CommandPalette from './components/CommandPalette';
 import { useAppContext } from './context/AppContext';
@@ -20,7 +22,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
   const { user, loading } = useAuthContext();
-  const [authView, setAuthView] = useState('login'); // 'login' or 'register'
+  const [authView, setAuthView] = useState('landing'); // 'landing', 'login', or 'register'
   
   const { view, setView, selectedPeriod, setSelectedPeriod, isDarkMode, setIsDarkMode } = useAppContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -67,6 +69,7 @@ function App() {
       if (type === 'yearly') return `${id} Vision`;
     }
     if (view === 'roadmap') return 'Strategic Roadmap';
+    if (view === 'groups') return 'Group Intelligence';
     return 'Progress Tracker';
   };
 
@@ -79,6 +82,7 @@ function App() {
   }
 
   if (!user) {
+    if (authView === 'landing') return <LandingPage onLogin={() => setAuthView('login')} onRegister={() => setAuthView('register')} />;
     return authView === 'login' 
       ? <Login switchToRegister={() => setAuthView('register')} />
       : <Register switchToLogin={() => setAuthView('login')} />;
@@ -164,6 +168,7 @@ function App() {
               {view === 'analytics' && <AnalyticsView />}
               {view === 'settings' && <SettingsView />}
               {view === 'roadmap' && <StrategicRoadmap />}
+              {view === 'groups' && <GroupsView />}
             </motion.div>
           </AnimatePresence>
         </section>

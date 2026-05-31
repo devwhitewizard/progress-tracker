@@ -17,6 +17,7 @@ import {
 
 const StrategicRoadmap = () => {
   const { goals, toggleGoal, addGoal, updateGoal } = useAppContext();
+  const tabs = ['Daily', 'Weekly', 'Yearly'];
   const [activeTab, setActiveTab] = useState('Daily');
   const [expandedGoalId, setExpandedGoalId] = useState(null);
   const [inputValue, setInputValue] = useState('');

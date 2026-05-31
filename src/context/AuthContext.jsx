@@ -7,25 +7,12 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('tracker_token') || null);
   const [loading, setLoading] = useState(true);
 
-  // Validate token on load
+  // Bypass backend token validation
   useEffect(() => {
-    const checkUser = async () => {
+    const checkUser = () => {
       if (token) {
-        try {
-          const res = await fetch('http://localhost:5000/api/auth/verify', {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            setUser(data);
-          } else {
-            console.error('Token validation failed');
-            logout();
-          }
-        } catch (error) {
-          console.error('Error verifying token', error);
-          logout();
-        }
+        // In offline mode, if we have a token, we just assume a default Guest user
+        setUser({ id: 'guest', name: 'Guest User', email: 'guest@example.com' });
       }
       setLoading(false);
     };
@@ -33,49 +20,30 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (email, password) => {
-    const res = await fetch('http://localhost:5000/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      localStorage.setItem('tracker_token', data.token);
-      setToken(data.token);
-      setUser(data);
-      return { success: true };
-    }
-    return { success: false, message: data.message, requiresVerification: data.requiresVerification };
+    // Offline Login: Always succeed for any credentials
+    const mockToken = 'offline-token-' + Date.now();
+    const mockUser = { id: 'guest', name: 'Guest User', email };
+    
+    localStorage.setItem('tracker_token', mockToken);
+    setToken(mockToken);
+    setUser(mockUser);
+    return { success: true };
   };
 
   const register = async (name, email, password) => {
-    const res = await fetch('http://localhost:5000/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      // Don't log in yet, need to verify
-      return { success: true, email: data.email };
-    }
-    return { success: false, message: data.message };
+    // Offline Registration: Simulate success
+    return { success: true, email };
   };
 
   const verifyEmail = async (email, code) => {
-    const res = await fetch('http://localhost:5000/api/auth/verify-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, code })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      localStorage.setItem('tracker_token', data.token);
-      setToken(data.token);
-      setUser(data);
-      return { success: true };
-    }
-    return { success: false, message: data.message };
+    // Offline Verification: Always succeed
+    const mockToken = 'offline-token-' + Date.now();
+    const mockUser = { id: 'guest', name: 'Guest User', email };
+    
+    localStorage.setItem('tracker_token', mockToken);
+    setToken(mockToken);
+    setUser(mockUser);
+    return { success: true };
   };
 
   const logout = () => {
